@@ -13,7 +13,7 @@ result_struct(num_iterations) = struct('offset', [], 'lifetime', [], 'Jsc', [], 
 % file_name = 'simulation_0_result.mat';
 file_name = 'simulation_Angle_result.mat';
 field_name = 'kLECT0515';
-lifetime_ex = 1000; %eciton lifetime (ps)
+lifetime_ex = 10; %eciton lifetime (ps)
 lifetime_ex_str = strrep(sprintf('%04.0f', lifetime_ex), '.', '');
 % full_name = [field_name 'd1eVd1nm' lifetime_ex_str 'ps_0_osclt2e_2'];
 full_name = [field_name 'd1eVd1nm' lifetime_ex_str 'ps_kdis510_RCTE01_krec19_kfor2510_An'];
@@ -38,13 +38,13 @@ result_struct(ii).offset = offset;
 Prec.params.tickness        = 100 * 1e-9;           % m     % thickness of the active layer
 Prec.params.Ex.DG0          = 1.4;                 
 Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
-Prec.params.Ex.f            = 2.56;
+Prec.params.Ex.f            = 2.56e-0;
 Prec.params.CT.f            = 2e-4;
 Prec.params.Ex.sigma        = 0.0001;
 Prec.params.CT.sigma        = 0.0001;
 Prec.params.Ex.numbrestate  = 1;
 Prec.params.CT.numbrestate  = 1;
-Prec.params.Ex.L0           = 0.10;  %0.10
+Prec.params.Ex.L0           = 0.1;  %0.10
 Prec.params.Ex.Li           = 0.15; %0.15   %0.04-0.150
 Prec.params.CT.L0           = 0.10;  %0.18  %CT smoothing
 Prec.params.CT.Li           = 0.15;   %0.15
@@ -66,7 +66,7 @@ NC          = 2e19;     % Number of Charge Carriers         % cm^-3
 Kfor        = 2.5e-10;    % Rate Constant CS to CT            % cm^3 / s
 kdis        = 5e10;     % Rate Constant CT dissociation     % 1 / s
 kdisex      = k_values(1);     % Rate Constatn Ex dissociation     % 1 / s
-mobility    = 5e-4;     % Charge Carrier Mobility           % cm^2 / V / s
+mobility    = 5e-2;     % Charge Carrier Mobility           % cm^2 / V / s
 
 deviceParameterFile = 'DeviceParameters_Default.xlsx';
 
@@ -117,7 +117,7 @@ clear NC activelayer Tq1exp mobility kdis kdisex
     toc
 
     % for different suns
-    suns = [0];
+    suns = [1];
     for Gen=suns
         tic
         DV2=device_forMarcus.runsolJsc(DV2,Gen);
