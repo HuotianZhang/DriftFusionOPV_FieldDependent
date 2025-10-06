@@ -1,13 +1,26 @@
 function [JJ, VV] = run_MarcusTransfer_JV(lifetime_ex, offset)
 % run_MarcusTransfer_JV - Run Marcus transfer J-V simulation
 %
+% This function performs a drift-diffusion simulation with Marcus transfer 
+% rates for organic photovoltaic devices. It replaces the workflow from
+% MarcusTransfer_JV_0620_334.m with a cleaner function-based approach.
+%
 % Inputs:
-%   lifetime_ex - Exciton lifetime (ps)
-%   offset - Energy offset between excited state and CT state (eV)
+%   lifetime_ex - Exciton lifetime in picoseconds (ps)
+%                 Example: 10 ps
+%   offset      - Energy offset between excited state and CT state (eV)
+%                 Valid range: 0.00 to 0.45 in steps of 0.05
+%                 Example: 0.00, 0.05, 0.10, ..., 0.45
 %
 % Outputs:
-%   JJ - Current density array
-%   VV - Voltage array
+%   JJ - Current density array (mA/cm²)
+%   VV - Voltage array (V)
+%
+% Example:
+%   [JJ, VV] = run_MarcusTransfer_JV(10, 0.05);
+%   plot(VV, JJ);
+%   xlabel('Voltage [V]');
+%   ylabel('Current Density [mA/cm^2]');
 
 % Calculate field-dependent rate constants
 kLECT_stark_vars = kDis_stark();
