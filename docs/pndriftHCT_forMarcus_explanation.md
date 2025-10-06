@@ -1,5 +1,13 @@
 # Explanation: pndriftHCT_forMarcus.m
 
+## Documentation Navigation
+
+- **[Quick Reference Guide](pndriftHCT_forMarcus_quick_reference.md)** - Fast lookup for syntax, equations, and parameters
+- **[Workflow Diagrams](pndriftHCT_forMarcus_workflow.md)** - Visual flow charts and data flow diagrams
+- **This Document** - Complete detailed explanation
+
+---
+
 ## Overview
 
 `pndriftHCT_forMarcus.m` is a MATLAB function that solves coupled drift-diffusion equations for organic photovoltaic (OPV) devices using Marcus theory for charge transfer. It simulates the behavior of charge carriers (electrons, holes), charge transfer states (CT), excitons, and electric potential in semiconductor devices with field-dependent dissociation rates.
