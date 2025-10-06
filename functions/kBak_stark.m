@@ -1,8 +1,11 @@
-Hab = 0.01;       % Electronic coupling matrix element (eV)
-%lambda = 0.6;      % Reorganization energy (eV)
-%deltaG = -0.45;     % Standard Gibbs free energy change (eV)
-T = 298;          % Temperature (K)
+function kCTLE_stark_vars = kBak_stark()
+% kBak_stark - Calculate back electron transfer rates using Marcus theory with Stark effect
+%
+% Returns:
+%   kCTLE_stark_vars - Structure containing field-dependent back transfer rates
 
+Hab = 0.01;       % Electronic coupling matrix element (eV)
+T = 298;          % Temperature (K)
 
 % Define the range of lambda and deltaG values
 lambda_values = 0.2:0.1:0.8; %eV If the step is smaller than 0.1, it will overwrite..
@@ -11,16 +14,11 @@ RCT_values = RCT_values/1e9; %convert to m
 F_values = 0:1e5:5e7; %V/m
 deltaG_values = 0.00:0.05:0.45;
 
-
 % Create a structure to hold the k_LE2CTs
 kCTLE_stark_vars = struct();
 
-
-
-
 % Preallocate the output matrix for efficiency
 ket_matrix = zeros(length(F_values), length(deltaG_values));
-
 
 for lambda_nums = 1:length(lambda_values)
     lambda = lambda_values(lambda_nums);
@@ -43,7 +41,6 @@ for lambda_nums = 1:length(lambda_values)
               deltaG = + deltaG_values(deltaG_nums);
               
               % Calculate ket using the Marcus equation
-              % function ket = marcus_equation(Hab, lambda, deltaG, T, F, RCT, theta)
               ket = marcus_equation_stark(Hab, lambda, deltaG, T, F, RCT);
               ket_matrix(F_nums, deltaG_nums) = 0.1*ket;
             end
@@ -52,4 +49,6 @@ for lambda_nums = 1:length(lambda_values)
         kCTLE = [F_values' ket_matrix];
         kCTLE_stark_vars.(kLECT_name)=kCTLE;
     end
+end
+
 end
