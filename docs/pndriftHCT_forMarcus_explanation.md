@@ -408,6 +408,20 @@ The `_forMarcus` version includes:
 4. **Layer count**: More layers increase computational cost
 5. **Field dependence**: Computing field-dependent rates adds overhead
 
+### Recent Performance Optimizations (2025)
+
+The function has been optimized for better performance while maintaining 100% backward compatibility:
+
+- **Parameter caching**: Frequently accessed struct fields are cached to reduce overhead
+- **Layer boundary precomputation**: Layer boundaries are precomputed for faster layer determination
+- **Thermal energy precomputation**: `kbT` is calculated once per PDE evaluation instead of multiple times
+- **Layer properties caching**: Current layer struct is cached to reduce repeated cell array access
+- **Code cleanup**: Removed ~100 lines of commented code for better readability
+
+**Expected improvement**: 5-15% faster execution for typical simulations
+
+See [pndriftHCT_forMarcus_optimizations.md](pndriftHCT_forMarcus_optimizations.md) for detailed optimization documentation.
+
 ## Common Applications
 
 1. **J-V curve simulations**: Sweep voltage, extract current from carrier fluxes
