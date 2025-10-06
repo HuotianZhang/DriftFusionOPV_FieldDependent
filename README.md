@@ -18,3 +18,10 @@ Tutorial
 	> PINDevice.xlsx
 
 
+Documentation
+-------------
+
+For detailed explanations of key functions:
+- [pndriftHCT_forMarcus.m explanation](docs/pndriftHCT_forMarcus_explanation.md) - Comprehensive guide to the Marcus theory drift-diffusion solver
+
+
