@@ -220,7 +220,7 @@ solstruct.sol = sol;
         end
         
         % Set initial conditions based on input arguments
-        if length(varargin) == 0 || varargin{1, 1}.sol == 0
+        if length(varargin) == 0 | varargin{1, 1}.sol == 0
             % Default equilibrium initial conditions
             u0 = [params.Layers{ii}.n0;
                   params.Layers{ii}.p0;
