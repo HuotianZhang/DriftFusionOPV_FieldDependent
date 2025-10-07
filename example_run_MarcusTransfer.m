@@ -7,7 +7,7 @@ addpath(genpath(pwd));
 
 % Define input parameters
 lifetime_ex = 10;  % Exciton lifetime in picoseconds (ps)
-offset = 0.05;     % Energy offset in eV (valid range: 0.00 to 0.45 in steps of 0.05)
+offset = 0.05;     % Energy offset in eV (can be any positive value)
 
 % Call the function
 fprintf('Running simulation with lifetime_ex = %.1f ps, offset = %.2f eV\n', lifetime_ex, offset);

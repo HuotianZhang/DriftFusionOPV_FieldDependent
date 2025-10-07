@@ -12,28 +12,33 @@ result_struct(num_iterations) = struct('offset', [], 'lifetime', [], 'Jsc', [], 
 % file_name = 'simulation_result.mat';
 % file_name = 'simulation_0_result.mat';
 file_name = 'simulation_Angle_result.mat';
-field_name = 'kLECT0515';
+
+% Fixed parameters for Marcus rate calculations
+lambda = 0.5;  % eV - Reorganization energy
+RCT = 1.5;     % nm - Charge transfer distance
+
 lifetime_ex = 10; %eciton lifetime (ps)
 lifetime_ex_str = strrep(sprintf('%04.0f', lifetime_ex), '.', '');
-% full_name = [field_name 'd1eVd1nm' lifetime_ex_str 'ps_0_osclt2e_2'];
-full_name = [field_name 'd1eVd1nm' lifetime_ex_str 'ps_kdis510_RCTE01_krec19_kfor2510_An'];
-% full_name = [field_name 'd1eVd1nm' lifetime_ex_str 'ps_Angle'];
+full_name = ['kLECT0515d1eVd1nm' lifetime_ex_str 'ps_kdis510_RCTE01_krec19_kfor2510_An'];
 fighandle = figure('Name',full_name);
-%data = load('data.mat');
-% E_values = kLECT_vars.(field_name)(:, 1); % 
-E_values = kLECT_stark_vars.(field_name)(:, 1); % 
-
 
 for ii=1:1:num_iterations
-%ii=ii+3;
 fprintf('The current loop is: %d\n', ii); % Display as integer
 
-k_values = kLECT_stark_vars.(field_name)(:, ii+1); %
-k_bak_values = kCTLE_stark_vars.('kCTLE0515')(:, ii+1)*10;
+% Calculate offset for this iteration
+offset = 0.05*ii-0.05;  % eV    % energy difference between the excited state and the CT state
+fprintf('The offset is: %.2f\n', offset);
+
+% Calculate field-dependent rate constants for this offset
+kLECT = kDis_stark(lambda, RCT, offset);
+kCTLE = kBak_stark(lambda, RCT, offset);
+
+% Extract E_values and rate values
+E_values = kLECT(:, 1);
+k_values = kLECT(:, 2);
+k_bak_values = kCTLE(:, 2)*10;
 
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
-offset                      = 0.05*ii-0.05;  % eV    % energy difference between the excited state and the CT state
-fprintf('The offset is: %.2f\n', offset);
 result_struct(ii).offset = offset;
 Prec.params.tickness        = 100 * 1e-9;           % m     % thickness of the active layer
 Prec.params.Ex.DG0          = 1.4;                 
