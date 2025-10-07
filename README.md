@@ -1,6 +1,6 @@
 # DriftFusion for OPV with Field-Dependent Charge Transfer
 
-DriftFusion code developed by Mohammed Azzouzi as part of his PhD Thesis at Imperial College London, with Marcus theory field-dependent charge transfer implementation.
+DriftFusion code developed by Mohammed Azzouzi as part of his PhD Thesis at Imperial College London, with Marcus theory field-dependent charge transfer implementation by Huotian Zhang.
 
 ## Quick Start
 
