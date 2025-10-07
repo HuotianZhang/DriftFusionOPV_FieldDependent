@@ -9,8 +9,8 @@ function [JJ, VV] = run_MarcusTransfer_JV(lifetime_ex, offset)
 %   lifetime_ex - Exciton lifetime in picoseconds (ps)
 %                 Example: 10 ps
 %   offset      - Energy offset between excited state and CT state (eV)
-%                 Valid range: 0.00 to 0.45 in steps of 0.05
-%                 Example: 0.00, 0.05, 0.10, ..., 0.45
+%                 Can be any positive value
+%                 Example: 0.00, 0.05, 0.10, 0.15, 0.20, etc.
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²)
@@ -22,30 +22,18 @@ function [JJ, VV] = run_MarcusTransfer_JV(lifetime_ex, offset)
 %   xlabel('Voltage [V]');
 %   ylabel('Current Density [mA/cm^2]');
 
-% Calculate field-dependent rate constants
-kLECT_stark_vars = kDis_stark();
-kCTLE_stark_vars = kBak_stark();
+% Calculate field-dependent rate constants with the given offset
+% Fixed parameters: lambda = 0.5 eV, RCT = 1.5 nm
+lambda = 0.5;  % eV
+RCT = 1.5;     % nm
 
-% Fixed field name - this should match the parameters used
-field_name = 'kLECT0515';
+kLECT = kDis_stark(lambda, RCT, offset);
+kCTLE = kBak_stark(lambda, RCT, offset);
 
-% Get E_values (electric field values)
-E_values = kLECT_stark_vars.(field_name)(:, 1);
-
-% Calculate column index based on offset
-% offset = 0.05*ii - 0.05 => ii = (offset + 0.05)/0.05
-% Column index = ii + 1
-column_index = round((offset + 0.05)/0.05) + 1;
-
-% Validate column index
-max_columns = size(kLECT_stark_vars.(field_name), 2);
-if column_index < 2 || column_index > max_columns
-    error('Offset value %.2f is out of valid range. Column index %d exceeds available columns %d.', offset, column_index, max_columns);
-end
-
-% Select k_values and k_bak_values based on offset
-k_values = kLECT_stark_vars.(field_name)(:, column_index);
-k_bak_values = kCTLE_stark_vars.('kCTLE0515')(:, column_index) * 10;
+% Get E_values (electric field values) and rate values
+E_values = kLECT(:, 1);
+k_values = kLECT(:, 2);
+k_bak_values = kCTLE(:, 2) * 10;
 
 % Initialize recombination parameters
 Prec = paramsRec;
