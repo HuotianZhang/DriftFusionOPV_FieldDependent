@@ -67,9 +67,7 @@ Significant performance improvements to the core drift-diffusion solver:
 #### Logical Operator Fix
 Fixed critical bug in `pndriftHCT_forMarcus.m`:
 - **[Bug Fix Documentation](BUGFIX_LOGICAL_OPERATOR.md)** - Details and solution
-- **Issue:** Logical OR operator `||` error with array operands
-- **Solution:** Changed to bitwise OR operator `|` on line 223
-- **Impact:** Fixes runtime error when using previous solutions as initial conditions
+
 
 ### 📋 Testing
 
