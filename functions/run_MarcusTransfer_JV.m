@@ -81,7 +81,7 @@ kdisex      = k_values(1);
 mobility    = 5e-2;
 
 deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(['parameters\',deviceParameterFile]);
+DP = deviceparams(['parameters/',deviceParameterFile]);
 
 DP.light_properties.OM      = 0;
 DP.Time_properties.tpoints  = 100;
