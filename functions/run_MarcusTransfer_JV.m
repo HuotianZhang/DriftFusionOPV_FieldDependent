@@ -1,4 +1,4 @@
-function [JJ, VV] = run_MarcusTransfer_JV(lifetime_ex, offset)
+function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT)
 % run_MarcusTransfer_JV - Run Marcus transfer J-V simulation
 %
 % This function performs a drift-diffusion simulation with Marcus transfer 
@@ -6,27 +6,41 @@ function [JJ, VV] = run_MarcusTransfer_JV(lifetime_ex, offset)
 % MarcusTransfer_JV_0620_334.m with a cleaner function-based approach.
 %
 % Inputs:
-%   lifetime_ex - Exciton lifetime in picoseconds (ps)
-%                 Example: 10 ps
+%   VV          - Voltage array (V) - can be a vector; its range determines Vstart and Vend
+%                 If scalar, will use default range [0, VV]
+%                 Example: [0:0.1:1.2] or 1.2
 %   offset      - Energy offset between excited state and CT state (eV)
 %                 Can be any positive value
 %                 Example: 0.00, 0.05, 0.10, 0.15, 0.20, etc.
+%   lifetime_ex - Exciton lifetime in picoseconds (ps)
+%                 Example: 10 ps
+%   lambda      - Reorganization energy (eV)
+%                 Example: 0.5 eV
+%   RCT         - Charge transfer distance (nm)
+%                 Example: 1.5 nm
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²)
 %   VV - Voltage array (V)
 %
 % Example:
-%   [JJ, VV] = run_MarcusTransfer_JV(10, 0.05);
+%   [JJ, VV] = run_MarcusTransfer_JV([0:0.1:1.2], 0.05, 10, 0.5, 1.5);
 %   plot(VV, JJ);
 %   xlabel('Voltage [V]');
 %   ylabel('Current Density [mA/cm^2]');
 
-% Calculate field-dependent rate constants with the given offset
-% Fixed parameters: lambda = 0.5 eV, RCT = 1.5 nm
-lambda = 0.5;  % eV
-RCT = 1.5;     % nm
+% Determine Vstart and Vend from VV input
+if isscalar(VV)
+    % If VV is scalar, use it as Vend with Vstart=0
+    Vend = VV;
+    Vstart = 0;
+else
+    % If VV is a vector, use its min and max
+    Vstart = min(VV);
+    Vend = max(VV);
+end
 
+% Calculate field-dependent rate constants with the given parameters
 kLECT = kDis_stark(lambda, RCT, offset);
 kCTLE = kBak_stark(lambda, RCT, offset);
 
@@ -83,9 +97,7 @@ DP.Layers{2}.RCTE       = Prec.params.RCTE;
 
 DP = DP.generateDeviceparams(NC, activelayer, mobility, kdis, kdisex, Prec, Kfor, 0);
 
-% Run JV scan
-Vstart  = 0;
-Vend    = 1.2;
+% Vstart and Vend determined from VV input (already set earlier in the function)
 
 DP.Layers{2}.r0_CT  = 0;
 DP.Layers{2}.r0_Ex  = 1;

@@ -1,0 +1,130 @@
+================================================================================
+SUMMARY OF CHANGES - external_model.m Refactoring
+================================================================================
+
+OBJECTIVE:
+Refactor run_MarcusTransfer_JV to accept VV, offset, lifetime_ex, lambda, and 
+RCT as inputs, where VV can be a vector and determines Vstart/Vend. Create a 
+new external_model.m file that wraps this function.
+
+================================================================================
+FILES MODIFIED:
+================================================================================
+
+1. functions/run_MarcusTransfer_JV.m
+   - Changed signature from: run_MarcusTransfer_JV(lifetime_ex, offset)
+   - Changed signature to:   run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT)
+   - Added VV as first parameter (can be scalar or vector)
+   - Added lambda and RCT as parameters (previously hardcoded)
+   - Automatically determines Vstart/Vend from VV range
+   - Updated documentation and examples
+
+2. example_run_MarcusTransfer.m
+   - Updated all calls to use new function signature
+   - Added lambda and RCT parameter definitions
+   - Updated variable names to avoid confusion
+
+================================================================================
+FILES CREATED:
+================================================================================
+
+1. external_model.m (ROOT DIRECTORY)
+   - New wrapper function that simplifies interface
+   - Signature: external_model(VV, offset, lifetime_ex, lambda, RCT)
+   - Returns only JJ (current density)
+   - Replaces simple polynomial equations with physics-based calculations
+   - Clean, simple interface for external use
+
+2. example_external_model.m
+   - Example script demonstrating external_model usage
+   - Shows single and multi-parameter comparisons
+   - Includes plotting examples
+
+3. EXTERNAL_MODEL_REFACTORING.md
+   - Comprehensive technical documentation
+   - Details of all changes made
+   - Migration guide for existing code
+   - Technical parameter descriptions
+
+4. EXTERNAL_MODEL_QUICKSTART.md
+   - User-friendly quick start guide
+   - Basic usage examples
+   - Common use cases
+   - Parameter guidelines and troubleshooting
+
+================================================================================
+KEY CHANGES:
+================================================================================
+
+BEFORE (run_MarcusTransfer_JV):
+  - Signature: [JJ, VV] = run_MarcusTransfer_JV(lifetime_ex, offset)
+  - lambda = 0.5 (hardcoded)
+  - RCT = 1.5 (hardcoded)
+  - Vstart = 0 (hardcoded)
+  - Vend = 1.2 (hardcoded)
+
+AFTER (run_MarcusTransfer_JV):
+  - Signature: [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT)
+  - lambda is now an input parameter
+  - RCT is now an input parameter
+  - Vstart = min(VV) or 0 if VV is scalar
+  - Vend = max(VV) or VV if VV is scalar
+
+NEW (external_model):
+  - Signature: JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
+  - Simple wrapper around run_MarcusTransfer_JV
+  - Returns only JJ for simplified use
+  - Replaces polynomial fitting equations (Y = k02 * X.^2 + k20)
+
+================================================================================
+USAGE EXAMPLES:
+================================================================================
+
+OLD USAGE:
+  [JJ, VV] = run_MarcusTransfer_JV(10, 0.05);
+
+NEW USAGE - run_MarcusTransfer_JV:
+  [JJ, VV] = run_MarcusTransfer_JV(1.2, 0.05, 10, 0.5, 1.5);
+  % OR with vector
+  [JJ, VV] = run_MarcusTransfer_JV(linspace(0,1.2,50), 0.05, 10, 0.5, 1.5);
+
+NEW USAGE - external_model:
+  VV = linspace(0, 1.2, 50);
+  JJ = external_model(VV, 0.05, 10, 0.5, 1.5);
+
+================================================================================
+PARAMETER DESCRIPTIONS:
+================================================================================
+
+VV          - Voltage array (V) or scalar endpoint
+offset      - Energy offset between excited state and CT state (eV)
+lifetime_ex - Exciton lifetime (ps)
+lambda      - Reorganization energy (eV) [previously hardcoded as 0.5]
+RCT         - Charge transfer distance (nm) [previously hardcoded as 1.5]
+
+================================================================================
+TESTING:
+================================================================================
+
+Note: MATLAB/Octave not available in CI environment for automated testing.
+Manual testing required by user with MATLAB installation.
+
+Recommended tests:
+1. Run example_external_model.m
+2. Run example_run_MarcusTransfer.m
+3. Compare results with old version using default lambda=0.5, RCT=1.5
+4. Test with various VV vectors and parameter combinations
+
+================================================================================
+DOCUMENTATION:
+================================================================================
+
+- EXTERNAL_MODEL_REFACTORING.md  : Technical documentation
+- EXTERNAL_MODEL_QUICKSTART.md   : User-friendly guide
+- example_external_model.m       : Example usage script
+- example_run_MarcusTransfer.m   : Updated example script
+- In-line comments in all functions
+
+================================================================================
+END OF SUMMARY
+================================================================================
