@@ -1,17 +1,28 @@
-% Assuming your 101x11 double array is named 'data'
-% and the first column is the x-axis values.
-field_name = 'kLECT0515';
+% Script to plot Marcus transfer rates for different energy offsets
+% 
+% This script calculates and plots field-dependent Marcus transfer rates
+% for multiple energy offset values.
+
+% Parameters for Marcus rate calculations
+lambda = 0.5;  % eV - Reorganization energy  
+RCT = 1.5;     % nm - Charge transfer distance
+
 num_curve = 3;
 deltaG_values = 0.00:0.1:(-0.05+num_curve*0.1);
 
-data = kLECT_stark_vars.(field_name);
-% data = kLECT_vars.(field_name);
-% Extract x-axis data
-x = data(:, 1)/100;%convert m to cm
+% Calculate rates for the first offset to get E_values
+offset_first = abs(deltaG_values(1));
+kLECT_first = kDis_stark(lambda, RCT, offset_first);
+x = kLECT_first(:, 1)/100;  % convert V/m to V/cm
 
-y_matrix = zeros(size(data(:,1)));
+% Preallocate matrix for multiple curves
+y_matrix = zeros(size(kLECT_first(:,1), 1), num_curve);
+
+% Calculate rates for each offset value
 for ii=1:1:num_curve
-    y_matrix(:,ii) = data(:,ii*2)*10;
+    offset = abs(deltaG_values(ii));
+    kLECT = kDis_stark(lambda, RCT, offset);
+    y_matrix(:,ii) = kLECT(:,2)*10;
 end
 % Extract the remaining 10 columns for plotting
 % y_matrix = data(:, 2:end)*10; 
@@ -31,15 +42,8 @@ end
 % title('Plot of 10 Data Series');
 % %legend('Series 1', 'Series 2', 'Series 3', ..., 'Series 10'); % Add a legend (optional)
 
-% Extract lambda and d_CT values from the field name (or directly from your lambda_values and ct_distance_values)
-lambda_str = field_name(6:7); % Extract lambda (e.g., '06')
-d_ct_str = field_name(8:end); % Extract d_CT (e.g., '15')
-
-lambda = str2double(lambda_str)/10;    % Convert to number (e.g., 0.06)
-d_ct = str2double(d_ct_str)/10;        % Convert to number (e.g., 15)
-
 % Create the plot title dynamically
-plot_title = sprintf('{\\it \\lambda} = %.2f eV and {\\it d}_{CT} = %.1f nm', lambda, d_ct);
+plot_title = sprintf('{\\it \\lambda} = %.2f eV and {\\it d}_{CT} = %.1f nm', lambda, RCT);
 
 
 % Method 2: Plotting all columns at once (more efficient)
