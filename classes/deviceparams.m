@@ -29,7 +29,7 @@ classdef deviceparams
                 
                 % Physical constants
                 physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
-                physical_const.k = 1.3806505e-23;    % Boltzmann constant [J K^-1]
+                physical_const.k = 1.380649e-23;     % Boltzmann constant [J K^-1] (CODATA 2018)
                 physical_const.T = 300;              % Temperature [K]
                 physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
                 physical_const.q = 1;                % in e
