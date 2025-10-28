@@ -1,4 +1,12 @@
 classdef deviceparams 
+    % deviceparams - Device parameters for OPV simulation
+    %
+    % IMPORTANT NOTE ON THICKNESS PARAMETER:
+    % Device thickness is stored in Layers{}.tp (in centimeters).
+    % This is the SINGLE SOURCE OF TRUTH for thickness.
+    % When calling paramsRec.calcall(), convert to meters: tickness_m = tp * 1e-2
+    % See docs/THICKNESS_PARAMETER.md for complete documentation.
+    
     properties
         physical_const
         Layers

@@ -1,4 +1,12 @@
 classdef paramsRec
+    % paramsRec - Recombination parameters for CT and Exciton states
+    %
+    % IMPORTANT NOTE ON THICKNESS PARAMETER:
+    % The thickness parameter is NO LONGER stored in this class.
+    % Thickness must be passed as a parameter to calcall() and absorptionSIm().
+    % The canonical source of thickness is deviceparams.Layers{}.tp (in cm).
+    % See docs/THICKNESS_PARAMETER.md for complete documentation.
+    
     properties
         const
         params
