@@ -16,7 +16,7 @@
    - `tmax_Voc_1` = 1e-2 (first Voc equilibration time)
    - `tmax_Voc_2` = 1e-2 (second Voc equilibration time)
    - `tmax_TPV` = 5e-5 (TPV measurement time)
-   - `tmax_TAS` = 10e-9 (TAS measurement time)
+   - `tmax_TAS` = 10e-9 (TAS measurement time - kept as original notation, equivalent to 1e-8)
    - `tmax_transient` = 1e-2 (current transient time)
    - `V_pulse_rise` = 1e-4 (voltage pulse rise time)
 

@@ -18,7 +18,7 @@ All time properties are in **seconds** unless otherwise noted.
 | `tmax_Voc_1` | `1e-2` | Time for first Voc equilibration |
 | `tmax_Voc_2` | `1e-2` | Time for second Voc equilibration |
 | `tmax_TPV` | `5e-5` | Time for TPV (Transient Photo-Voltage) measurement |
-| `tmax_TAS` | `10e-9` | Time for TAS (Transient Absorption Spectroscopy) measurement |
+| `tmax_TAS` | `10e-9` | Time for TAS (Transient Absorption Spectroscopy) measurement (note: 10e-9 = 1e-8, kept as original) |
 | `tmax_transient` | `1e-2` | Time for current transient |
 | `V_pulse_rise` | `1e-4` | Voltage pulse rise time |
 
