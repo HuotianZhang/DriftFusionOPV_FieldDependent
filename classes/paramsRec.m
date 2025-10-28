@@ -23,7 +23,8 @@ classdef paramsRec
             const.kb=8.6173324e-5;% boltzmann constant in eV K-1
             const.bb=blackbody(const.T,const.Edistribution);%black body in units mA/cm^2/eV
 %             const.chemicalpot=0.9;
-            params.tickness=1e-7;%thickness of the device in m
+            % NOTE: Thickness is no longer stored in paramsRec. 
+            % It should be defined only in deviceparams.Layers{}.tp
             %params.sizeofsite=5e-10;%size of the site in m ( need to define it in terms of density of states) 
             params.Excitondesnity=1/power(5e-10,3);% in unit m^-3
 			params.nie=1.5;%refrective index of the medium
@@ -267,7 +268,16 @@ classdef paramsRec
             %%%%%%%%%%%%%absorption
             params.results.alphaLJ=alphaLJ;
         end
-        function Prec=absorptionSIm(Prec)
+        function Prec=absorptionSIm(Prec, tickness)
+            % absorptionSIm - Calculate absorption spectrum and radiative properties
+            %
+            % Inputs:
+            %   Prec     - paramsRec object with CT and Ex parameters
+            %   tickness - Device thickness in meters (m)
+            %
+            % Note: Thickness must be provided as parameter. It is no longer
+            % stored in Prec.params.tickness. The canonical source is 
+            % deviceparams.Layers{}.tp (in cm).
             
             %%%%%%%%%%%%%%%%%%%absorption spectrum%%%%%%%%%%%%%%%%%
             Prec.params.CT = paramsRec.absorptionstate(Prec.params.CT, Prec.const);
@@ -299,7 +309,7 @@ classdef paramsRec
             %%%%%%%%%%%%%absorption
             int=1;
             for E=Einterp
-                AbsLJ(int) = 1-exp(-2*Prec.params.tickness*alphaLJ(int));
+                AbsLJ(int) = 1-exp(-2*tickness*alphaLJ(int));
                 int=int+1;
             end
             %%%%%%%%%%%%JSC rad%%%%%%%%%%%%%%%%%%%%%%
@@ -307,7 +317,7 @@ classdef paramsRec
             solarphlux           = interp1(Prec.const.solflux(:,1),Prec.const.solflux(:,2),Einterp);
             Jscrad               = trapz(Einterp, AbsLJ   .* solarphlux);
             J0rad                = trapz(Einterp, AbsLJ   .* bbinterp);
-            integralRadRec       = trapz(Einterp, alphaLJ .* bbinterp * 4 * Prec.params.tickness * Prec.params.nie^2);
+            integralRadRec       = trapz(Einterp, alphaLJ .* bbinterp * 4 * tickness * Prec.params.nie^2);
             radiativeEmission    = alphaLJ .* bbinterp * 4 * Prec.params.nie^2 * 1e-2;
             Prec.results.R0rad   = trapz(Einterp, radiativeEmission);% here R0rad is in cm-3%Epsilon,out isconsidered ot be equal to pi according to equation 23 in 10.1103/PhysRevB.90.035211  %radiative emission rate based on black body radiation
             Prec.results.Jscrad  = Jscrad;
@@ -319,10 +329,21 @@ classdef paramsRec
             % semilogy(results.Einterp,results.AbsLJ)
             
         end
-        function Prec=calcall(Prec)
+        function Prec=calcall(Prec, tickness)
+            % calcall - Calculate all recombination parameters
+            %
+            % Inputs:
+            %   Prec     - paramsRec object
+            %   tickness - Device thickness in meters (m)
+            %
+            % Note: Thickness must be provided as parameter. It is no longer
+            % stored in Prec.params.tickness. The canonical source is 
+            % deviceparams.Layers{}.tp (in cm), which should be converted
+            % to meters before calling this function.
+            
             Prec = paramsRec.update(Prec);
             Prec = paramsRec.calcFCWD(Prec);
-            Prec = paramsRec.absorptionSIm(Prec);
+            Prec = paramsRec.absorptionSIm(Prec, tickness);
             Prec = paramsRec.Calcrates(Prec);
 
         end

@@ -12,7 +12,7 @@ Prec=paramsRec;%first initiliase the recombination parameters ( the parameters a
 Prec.params.Ex.DG0=1.63;
 Prec.params.CT.f=5e-2;
 offset=0.2;
-Prec.params.tickness=AL_thickness*1e-2;%in m
+tickness=AL_thickness*1e-2;%in m
 Prec.params.CT.DG0=Prec.params.Ex.DG0-offset;
 Prec.params.RCTE=1e-4;
 Prec.params.Ex.Li=0.15;
@@ -26,7 +26,7 @@ Prec.params.CT.sigma=0.04;
 Prec.params.Ex.sigma=0.02;
 Prec.params.Ex.numbrestate=1;
 Prec.params.CT.numbrestate=1;
-Prec=paramsRec.calcall(Prec);%this line calculated the different properties of the states.
+Prec=paramsRec.calcall(Prec, tickness);%this line calculated the different properties of the states (pass thickness)
 krecCT=Prec.params.CT.results.knr;krecex=Prec.params.Ex.results.knr;
 Voc=Prec.results.Vocrad-Prec.results.Dvnr;
 
