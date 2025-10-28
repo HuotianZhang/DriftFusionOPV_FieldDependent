@@ -35,7 +35,7 @@ classdef deviceparams
                 physical_const.q = 1;                % in e
                 physical_const.e = 1.602176634e-19;  % Charge of an electron in Coulombs (CODATA 2018)
                 physical_const.h = 6.62607015e-34;   % Planck constant [J s] (CODATA 2018)
-                physical_const.hbar = 1.054571817e-34; % Reduced Planck constant [J s]
+                physical_const.hbar = 1.054571817e-34; % Reduced Planck constant [J s] = h/(2π)
                 physical_const.c = 2.99792458e8;     % Speed of light in vacuum [m s^-1]
                 physical_const.epsilon0 = 8.8541878128e-12; % Vacuum permittivity [F m^-1] (CODATA 2018)
                 physical_const.me = 9.1093837015e-31; % Electron mass [kg] (CODATA 2018)
