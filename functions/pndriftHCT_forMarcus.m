@@ -96,49 +96,14 @@ solstruct.sol = sol;
             end
         end
         
-        % Determine which layer contains point x (optimized)
-        kk = 1;
-        for k = 1:layers_num
-            if x >= layer_XL(k) && x <= layer_XR(k)
-                kk = k;
-                break;
-            end
-        end
+        % Determine which layer contains point x
+        kk = find_layer_index(x, params);
         
         % Cache current layer properties to reduce struct access
         layer = params.Layers{kk};
         
-        % Calculate generation rate g
-        g = 0;
-        if light_prop.OM == 0  % Uniform generation
-            if light_prop.Int ~= 0
-                g = light_prop.Int * light_prop.Genstrength;
-            end
-            % Add pulse if active
-            if pulse_prop.pulseon == 1
-                if t >= pulse_prop.tstart && t < pulse_prop.pulselen + pulse_prop.tstart
-                    g = g + pulse_prop.pulseint * light_prop.Genstrength;
-                end
-            end
-        elseif light_prop.OM == 2  % Transfer Matrix
-            if layer.int ~= 0 && light_prop.Int ~= 0
-                g = interp1(light_prop.Gensprofile_pos, light_prop.Gensprofile_signal, x);
-                if isnan(g)
-                    g = 0;
-                end
-            end
-            % Add pulse
-            if pulse_prop.pulseon == 1
-                if t >= pulse_prop.tstart && t < pulse_prop.pulselen + pulse_prop.tstart
-                    g = g + pulse_prop.pulseint * light_prop.Genstrength;
-                end
-            end
-        end
-        
-        % Override generation if layer doesn't absorb
-        if layer.int == 0
-            g = 0;
-        end
+        % Calculate generation rate
+        g = calc_generation_rate(x, t, params, layer);
         
         % Time derivative coefficients
         c = [1; 1; 1; 0; 1];  % [dn/dt, dp/dt, dCT/dt, dV/dt, dEx/dt]
@@ -188,7 +153,7 @@ solstruct.sol = sol;
         
         % Calculate field-dependent rates
         kdisexc = layer.kdisexc * (1 - r0_Ex) + interpolated_k * r0_Ex;
-        kdis = layer.kdis * exp(q * E_field * r0_CT / kbT);
+        kdis = calc_field_dependent_rate(layer.kdis, q, E_field, r0_CT, kB, T);
         
         % Calculate back transfer rate (CT to exciton)
         offsetLECT = params.Layers{2}.offset;
@@ -211,13 +176,7 @@ solstruct.sol = sol;
 % Initial Conditions Function
     function u0 = pdex4ic(x)
         % Determine which layer contains point x
-        ii = 1;
-        for k = 1:layers_num
-            if x < params.Layers{k}.XR
-                ii = k;
-                break;
-            end
-        end
+        ii = find_layer_index(x, params);
         
         % Set initial conditions based on input arguments
         if length(varargin) == 0 | varargin{1, 1}.sol == 0
