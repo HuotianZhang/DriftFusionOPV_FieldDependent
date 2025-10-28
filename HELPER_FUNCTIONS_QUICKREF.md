@@ -142,7 +142,7 @@ end
    ```matlab
    % Replace this pattern:
    for kk=1:1:params.layers_num
-       if(x<=params.Layers{kk}.XR && x>=params.Layers{kk}.XL)
+       if(x>=params.Layers{kk}.XL && x<=params.Layers{kk}.XR)
            break;
        end
    end
