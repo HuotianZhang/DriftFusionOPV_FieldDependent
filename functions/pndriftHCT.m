@@ -85,48 +85,11 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
             end
         end
         
-        for kk=1:1:params.layers_num
-            if(x<=params.Layers{kk}.XR && x>=params.Layers{kk}.XL )
-                break;
-            end
-        end
-        %if side == 1
-        % Uniform Generation
-        if params.light_properties.OM == 0
-            if params.light_properties.Int ~= 0
-                g = params.light_properties.Int*params.light_properties.Genstrength ;
-            else
-                g = 0;
-            end
-            % Add pulse
-            if params.pulse_properties.pulseon == 1
-                if  t >= params.pulse_properties.tstart && t < params.pulse_properties.pulselen + params.pulse_properties.tstart %&& x<=params.Layers{kk}.XL+4*params.Layers{kk}.tinterR
-                    g = g+params.pulse_properties.pulseint*params.light_properties.Genstrength ;
-                end
-            end
-        elseif params.light_properties.OM == 2
-            if params.Layers{kk}.int ~= 0 && params.light_properties.Int ~= 0
-                g = interp1(params.light_properties.Gensprofile_pos,params.light_properties.Gensprofile_signal,x) ;
-                if isnan(g)
-                    g=0;
-                end
-            else
-                g = 0;
-            end
-            % Add pulse  % kept similar to a uniform pulse 
-            if params.pulse_properties.pulseon == 1
-                if  t >= params.pulse_properties.tstart && t < params.pulse_properties.pulselen + params.pulse_properties.tstart %&& x<=params.Layers{kk}.XL+4*params.Layers{kk}.tinterR
-                    g = g+params.pulse_properties.pulseint*params.light_properties.Genstrength ;
-                end
-            end
-        else
-            g = 0;
-            
-        end
+        % Find which layer contains position x
+        kk = find_layer_index(x, params);
         
-        if params.Layers{kk}.int==0
-            g=0;
-        end
+        % Calculate generation rate
+        g = calc_generation_rate(x, t, params, params.Layers{kk});
         % Prefactors set to 1 for time dependent components - can add other
         % functions if you want to include the multiple trappng model
         c = [1
@@ -156,20 +119,21 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
                 0;];
             
         end
+        % Calculate field-dependent dissociation rates
         if isfield(params.Layers{kk},'r0_Ex')
             r0_Ex=params.Layers{kk}.r0_Ex;%start with r0=3nm
-            kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
+            kdisexc = calc_field_dependent_rate(params.Layers{kk}.kdisexc, q, DuDx(4), r0_Ex, kB, T);
         else
             r0_Ex=0;
-            
+            kdisexc = params.Layers{kk}.kdisexc;
         end
         if isfield(params.Layers{kk},'r0_CT')
             r0_CT=params.Layers{kk}.r0_CT;%start with r0=3nm
+            kdis = calc_field_dependent_rate(params.Layers{kk}.kdis, q, DuDx(4), r0_CT, kB, T);
         else
             r0_CT=0;
+            kdis = params.Layers{kk}.kdis;
         end
-        kdis=params.Layers{kk}.kdis*exp(q*abs(DuDx(4))*r0_CT/(kB*T));
-        kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
         s = [kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)); 
             kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%start with r0=3nm
             kdisexc*(u(5))+params.Layers{kk}.kfor*((u(1)*u(2)))-(kdis*u(3)+params.Layers{kk}.krec*(u(3)-params.Layers{kk}.CT0))-params.Layers{kk}.kforEx*(u(3));
@@ -193,11 +157,8 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
 
 % Define initial conditions.
     function u0 = pdex4ic(x)
-        for ii=1:1:params.layers_num
-            if(x<params.Layers{ii}.XR)
-                break;
-            end
-        end
+        % Find which layer contains position x
+        ii = find_layer_index(x, params);
         if length(varargin) == 0 | varargin{1, 1}.sol == 0
             
             u0 = [params.Layers{ii}.n0;
