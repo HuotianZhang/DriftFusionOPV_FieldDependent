@@ -30,6 +30,7 @@ classdef deviceparams
                 % Physical constants
                 physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
                 physical_const.T = 300;              % Temperature [K]
+                physical_const.kBT = physical_const.kB * physical_const.T;  % Thermal energy [eV] - cached calculation
                 physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
                 physical_const.q = 1;                % in e
                 physical_const.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculations
@@ -164,9 +165,9 @@ classdef deviceparams
             headerlinesIn = 0;
             data = importdata(filename,delimiterIn,headerlinesIn);
             DP.layers_num=length(data.data(:,1));
-            epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
+            % Use physical_const.epp0 instead of duplicating the constant
             for ii=1:1:DP.layers_num
-                DP.Layers{ii}.epp=data.data(ii,1)*epp0; % Dielectric constant
+                DP.Layers{ii}.epp=data.data(ii,1)*DP.physical_const.epp0; % Dielectric constant
                 DP.Layers{ii}.EA = data.data(ii,2);        % Conduction band energy
                 DP.Layers{ii}.IP = data.data(ii,3);     % Valence band energy
                 DP.Layers{ii}.PhiCV = data.data(ii,4);   % n doping
@@ -204,6 +205,9 @@ classdef deviceparams
             end
         end
         function DP=UpdateLayers(DP)
+            % Cache kBT for performance
+            kBT = DP.physical_const.kBT;
+            
             for ii=1:1:DP.layers_num
                 DP.Layers{ii}.PhiC = DP.Layers{ii}.EA -DP.Layers{ii}.PhiCV;       %n doping
                 DP.Layers{ii}.PhiA = DP.Layers{ii}.IP + DP.Layers{ii}.PhiAV;     % p doping
@@ -218,7 +222,7 @@ classdef deviceparams
                     DP.Layers{ii}.mup = DP.Layers{ii}.mupp;     % hole mobility
                 end
                 % Doping concentration and band bending
-                DP.Layers{ii}.ni    = sqrt(DP.Layers{ii}.N0C*DP.Layers{ii}.N0V)*(exp(-DP.Layers{ii}.Eg/(2*DP.physical_const.kB*DP.physical_const.T)));          % Intrinsic carrier density
+                DP.Layers{ii}.ni    = sqrt(DP.Layers{ii}.N0C*DP.Layers{ii}.N0V)*(exp(-DP.Layers{ii}.Eg/(2*kBT)));          % Intrinsic carrier density
                 
                 DP.Layers{ii}.n0 = DP.Layers{ii}.ni;   % Background density electrons in etl/n-type
                 DP.Layers{ii}.p0 = DP.Layers{ii}.ni;     % Background density holes in etl/n-type
@@ -227,19 +231,19 @@ classdef deviceparams
                 DP.Layers{ii}.ND = 0;%obj.Layers.layer{i}.N0C*exp((obj.Layers.layer{i}.PhiC-obj.Layers.layer{i}.EA)/(obj.Layers.kB*obj.Layers.T));
                 DP.Layers{ii}.NA = 0;%obj.Layers.layer{i}.N0V*exp((obj.Layers.layer{i}.IP-obj.Layers.layer{i}.PhiA)/(obj.Layers.kB*obj.Layers.T));
                 if (DP.Layers{ii}.PhiCV>0)
-                    DP.Layers{ii}.n0 = DP.Layers{ii}.N0C*exp((DP.Layers{ii}.PhiC-DP.Layers{ii}.EA)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
-                    DP.Layers{ii}.p0 = DP.Layers{ii}.N0V*exp((DP.Layers{ii}.IP-DP.Layers{ii}.PhiC)/(DP.physical_const.kB*DP.physical_const.T));     % Background density holes in etl/n-type
+                    DP.Layers{ii}.n0 = DP.Layers{ii}.N0C*exp((DP.Layers{ii}.PhiC-DP.Layers{ii}.EA)/kBT);     % Background density electrons in etl/n-type
+                    DP.Layers{ii}.p0 = DP.Layers{ii}.N0V*exp((DP.Layers{ii}.IP-DP.Layers{ii}.PhiC)/kBT);     % Background density holes in etl/n-type
                     DP.Layers{ii}.c0 =DP.Layers{ii}.p0*1e-1  ;
                     DP.Layers{ii}.Phi=DP.Layers{ii}.PhiC;
-                    DP.Layers{ii}.ND = DP.Layers{ii}.N0C*exp((DP.Layers{ii}.PhiC-DP.Layers{ii}.EA)/(DP.physical_const.kB*DP.physical_const.T));
+                    DP.Layers{ii}.ND = DP.Layers{ii}.N0C*exp((DP.Layers{ii}.PhiC-DP.Layers{ii}.EA)/kBT);
                     DP.Layers{ii}.NA = 0;%obj.Layers.layer{i}.N0V*exp((obj.Layers.layer{i}.IP-obj.Layers.layer{i}.PhiA)/(obj.Layers.kB*obj.Layers.T));
                 elseif (DP.Layers{ii}.PhiAV>0)
-                    DP.Layers{ii}.n0 = DP.Layers{ii}.N0C*exp((DP.Layers{ii}.PhiA-DP.Layers{ii}.EA)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
-                    DP.Layers{ii}.p0 = DP.Layers{ii}.N0V*exp((DP.Layers{ii}.IP-DP.Layers{ii}.PhiA)/(DP.physical_const.kB*DP.physical_const.T));     % Background density holes in etl/n-type
+                    DP.Layers{ii}.n0 = DP.Layers{ii}.N0C*exp((DP.Layers{ii}.PhiA-DP.Layers{ii}.EA)/kBT);     % Background density electrons in etl/n-type
+                    DP.Layers{ii}.p0 = DP.Layers{ii}.N0V*exp((DP.Layers{ii}.IP-DP.Layers{ii}.PhiA)/kBT);     % Background density holes in etl/n-type
                     DP.Layers{ii}.c0 =DP.Layers{ii}.n0*1e-1 ;
                     DP.Layers{ii}.Phi=DP.Layers{ii}.PhiA;
                     DP.Layers{ii}.ND = 0;%obj.Layers.layer{i}.N0C*exp((obj.Layers.layer{i}.PhiC-obj.Layers.layer{i}.EA)/(obj.Layers.kB*obj.Layers.T));
-                    DP.Layers{ii}.NA = DP.Layers{ii}.N0V*exp((DP.Layers{ii}.IP-DP.Layers{ii}.PhiA)/(DP.physical_const.kB*DP.physical_const.T));
+                    DP.Layers{ii}.NA = DP.Layers{ii}.N0V*exp((DP.Layers{ii}.IP-DP.Layers{ii}.PhiA)/kBT);
                 else
                     
                     DP.Layers{ii}.n0 = DP.Layers{ii}.ni;   % Background density electrons in etl/n-type
@@ -252,8 +256,8 @@ classdef deviceparams
                 % Intrinsic Fermi Energy
                 DP.Layers{ii}.Ei = 0.5*((DP.Layers{ii}.EA+DP.Layers{ii}.IP));
                 % Traps properties
-%                 DP.Layers{ii}.nt =  DP.Layers{ii}.ni*exp(( DP.Layers{ii}.Ete- DP.Layers{ii}.Ei)/( DP.physical_const.kB*DP.physical_const.T));     % Density of CB electrons when Fermi level at trap state energy
-%                 DP.Layers{ii}.pt =  DP.Layers{ii}.ni*exp(( DP.Layers{ii}.Ei- DP.Layers{ii}.Eth)/( DP.physical_const.kB*DP.physical_const.T));     % Density of VB holes when Fermi level at trap state energy
+%                 DP.Layers{ii}.nt =  DP.Layers{ii}.ni*exp(( DP.Layers{ii}.Ete- DP.Layers{ii}.Ei)/kBT);     % Density of CB electrons when Fermi level at trap state energy
+%                 DP.Layers{ii}.pt =  DP.Layers{ii}.ni*exp(( DP.Layers{ii}.Ei- DP.Layers{ii}.Eth)/kBT);     % Density of VB holes when Fermi level at trap state energy
 %                 DP.Layers{ii}.en=1/DP.Layers{ii}.NTA/DP.Layers{ii}.taun*DP.Layers{ii}.nt;
 %                 DP.Layers{ii}.Cn=1/DP.Layers{ii}.NTA/DP.Layers{ii}.taun;
 %                 DP.Layers{ii}.ep=1/DP.Layers{ii}.NTD/DP.Layers{ii}.taup*DP.Layers{ii}.pt;
@@ -280,8 +284,8 @@ classdef deviceparams
             end
             if(DP.layers_num==1)
                 DP.Experiment_prop.Vbi=2;
-                DP.Layers{1}.n0 = DP.Layers{1}.N0C*exp(-0.1/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
-                DP.Layers{1}.p0 = DP.Layers{1}.N0V*exp(-0.1/(DP.physical_const.kB*DP.physical_const.T));     % Background density holes in etl/n-type
+                DP.Layers{1}.n0 = DP.Layers{1}.N0C*exp(-0.1/kBT);     % Background density electrons in etl/n-type
+                DP.Layers{1}.p0 = DP.Layers{1}.N0V*exp(-0.1/kBT);     % Background density holes in etl/n-type
                 
             else
                 DP.Experiment_prop.Vbi=DP.Layers{DP.layers_num}.Phi-DP.Layers{1}.Phi;
@@ -342,10 +346,11 @@ classdef deviceparams
             end
         end
         function DP=update_boundary_charge_densities(DP)
-            DP.External_prop.nleft = DP.Layers{1}.N0C*exp((DP.External_prop.leftboundary_fermi_energy-DP.Layers{1}.EA)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
-            DP.External_prop.pleft = DP.Layers{1}.N0V*exp((-DP.External_prop.leftboundary_fermi_energy+DP.Layers{1}.IP)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
-            DP.External_prop.nright = DP.Layers{end}.N0C*exp((DP.External_prop.Rightboundary_fermi_energy-DP.Layers{end}.EA)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
-            DP.External_prop.pright = DP.Layers{end}.N0V*exp((-DP.External_prop.Rightboundary_fermi_energy+DP.Layers{end}.IP)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
+            kBT = DP.physical_const.kBT;  % Use cached thermal energy
+            DP.External_prop.nleft = DP.Layers{1}.N0C*exp((DP.External_prop.leftboundary_fermi_energy-DP.Layers{1}.EA)/kBT);     % Background density electrons in etl/n-type
+            DP.External_prop.pleft = DP.Layers{1}.N0V*exp((-DP.External_prop.leftboundary_fermi_energy+DP.Layers{1}.IP)/kBT);     % Background density electrons in etl/n-type
+            DP.External_prop.nright = DP.Layers{end}.N0C*exp((DP.External_prop.Rightboundary_fermi_energy-DP.Layers{end}.EA)/kBT);     % Background density electrons in etl/n-type
+            DP.External_prop.pright = DP.Layers{end}.N0V*exp((-DP.External_prop.Rightboundary_fermi_energy+DP.Layers{end}.IP)/kBT);     % Background density electrons in etl/n-type
             
         end
         function DP=generateDeviceparams(DP,NC,activelayer,mobility,kdis,kdisex,Prec,varargin)
@@ -355,8 +360,9 @@ classdef deviceparams
             %             DP=pnParamsHCT;
             %input parameters
             DP.physical_const.T=Prec.const.T;
+            DP.physical_const.kBT = DP.physical_const.kB * DP.physical_const.T;  % Update cached kBT when temperature changes
             tickness=DP.Layers{activelayer}.tp;%in cm
-            kbT=DP.physical_const.kB*DP.physical_const.T;%in eV
+            kbT=DP.physical_const.kBT;  % Use cached kBT
             q=DP.physical_const.e;
             offsetLECT=Prec.params.Ex.DG0-Prec.params.CT.DG0;
             krecex=Prec.params.Ex.results.knr+Prec.params.Ex.results.krTot;

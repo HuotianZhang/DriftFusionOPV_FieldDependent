@@ -9,6 +9,17 @@ classdef device_forMarcus
         ssol_TPV=0;
         ssol_TAS=0;
         sol_Vpulse=0;
+        
+        % Configurable simulation time properties (magic numbers replaced)
+        sim_time_Voc_eq1 = 1e-2;        % Time for Voc equilibration step 1 [s]
+        sim_time_Voc_eq2 = 1e-2;        % Time for Voc equilibration step 2 [s]
+        sim_time_TPV = 5e-5;            % Time for TPV simulation [s]
+        sim_pulse_len_TPV = 2e-6;       % TPV pulse length [s]
+        sim_pulse_start_TPV = 1e-6;     % TPV pulse start time [s]
+        sim_time_TAS = 10e-9;           % Time for TAS simulation [s]
+        sim_pulse_len_TAS = 2e-13;      % TAS pulse length [s]
+        sim_pulse_start_TAS = 1e-12;    % TAS pulse start time [s]
+        sim_pulse_int_TAS = 500;        % TAS pulse intensity multiplier
     end
     methods(Static)
         function DV=device_forMarcus(DP,varargin)%run solution at equilibrium
@@ -118,11 +129,11 @@ classdef device_forMarcus
             p.Experiment_prop.pulseon=0;
             p.light_properties.Int=Gen;
             p.Experiment_prop.BC=4;
-            p.Time_properties.tmax=1e-2;%-5
+            p.Time_properties.tmax=DV.sim_time_Voc_eq1;  % Use configurable property
             p=update_time(p);
             disp('Getting equilibrium for Symmetric model 1 ')
             ssol_eq=pndriftHCT_forMarcus(ssol_eq,p);
-            p.Time_properties.tmax=1e-2;%-3
+            p.Time_properties.tmax=DV.sim_time_Voc_eq2;  % Use configurable property
             p=update_time(p);
             disp('Getting equilibrium for Symmetric model 2 ')
             try
@@ -139,9 +150,9 @@ classdef device_forMarcus
                 if Gen==ssol_Voc.params.light_properties.Int
                     p=ssol_Voc.params;
                     p.pulse_properties.pulseon=1;
-                    p.Time_properties.tmax = 5e-5;        % Time
-                    p.pulse_properties.pulselen = 2e-6;
-                    p.pulse_properties.tstart=1e-6;
+                    p.Time_properties.tmax = DV.sim_time_TPV;           % Use configurable property
+                    p.pulse_properties.pulselen = DV.sim_pulse_len_TPV;  % Use configurable property
+                    p.pulse_properties.tstart = DV.sim_pulse_start_TPV;  % Use configurable property
                     p.pulse_properties.pulseint =2*Gen;
                     p.Time_properties.tpoints = 1000;
                     p=update_time(p);
@@ -169,10 +180,10 @@ classdef device_forMarcus
                 if Gen==ssol_Voc.params.light_properties.Int
                     p=ssol_Voc.params;
                     p.pulse_properties.pulseon=1;
-                    p.Time_properties.tmax = 10e-9;        % Time
-                    p.pulse_properties.pulselen = 2e-13;
-                    p.pulse_properties.tstart=1e-12;
-                    p.pulse_properties.pulseint =500;
+                    p.Time_properties.tmax = DV.sim_time_TAS;           % Use configurable property
+                    p.pulse_properties.pulselen = DV.sim_pulse_len_TAS;  % Use configurable property
+                    p.pulse_properties.tstart = DV.sim_pulse_start_TAS;  % Use configurable property
+                    p.pulse_properties.pulseint = DV.sim_pulse_int_TAS;  % Use configurable property
                     p.Time_properties.tpoints = 1000;
                     p=update_time(p);
                     disp('Doing TAS ')

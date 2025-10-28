@@ -7,7 +7,7 @@ classdef paramsRec
     methods (Static)
         function Prec=paramsRec
 %             const.V=30;
-            const.kb=8.6173324e-5;
+            const.kb=8.6173324e-5;  % Boltzmann constant in eV K-1 (single source of truth)
             const.me=9.1e-31;% electron mass in kg
             const.h=6.62e-34;% planck constant in Joule
             const.e=1.6e-19;% elementary charge
@@ -20,7 +20,7 @@ classdef paramsRec
             const.solflux(:,2) = data.photonFlux;% photonFlux has units mA/cm^2/eV 
             % phflux = interp1( data.E,photonFlux,Energy);
             % [~,const.solflux] = ShockleyQueisser(1);%used to get the sun spectrum
-            const.kb=8.6173324e-5;% boltzmann constant in eV K-1
+            % const.kb already set above - no duplication needed
             const.bb=blackbody(const.T,const.Edistribution);%black body in units mA/cm^2/eV
 %             const.chemicalpot=0.9;
             params.tickness=1e-7;%thickness of the device in m
@@ -112,7 +112,7 @@ classdef paramsRec
         end
         
         function y=FC_em(params,const,E,m,n,laguerrecalc)
-            kb=8.6173324e-5;
+            kb=const.kb;  % Use const.kb instead of hardcoded value
             T=const.T;
             if (n==0)
                 y=exp(-params.S)*power(params.S,m)/factorial(m)*exp(-power(params.DG0-(E+m*params.hW+params.L0),2)/4/abs(params.L0)/kb/T);%*exp(-(n+m)*params.hW/kb/T);
