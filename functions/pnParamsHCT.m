@@ -9,6 +9,7 @@ else
     
     physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
     physical_const.T = 300;              % Temperature [K]
+    physical_const.kBT = physical_const.kB * physical_const.T;  % Thermal energy [eV] - cached for performance
     physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
     physical_const.q = 1;                % in e
     physical_const.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculations
