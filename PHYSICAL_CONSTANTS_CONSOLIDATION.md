@@ -28,7 +28,7 @@ All physical constant definitions have been updated to use consistent, accurate 
 **Changes**:
 - Updated `c` from 300e6 to 2.99792458e8 m/s (**CRITICAL FIX**)
 - Updated `me` from 9.1e-31 to 9.1093837015e-31 kg
-- Updated `h` from 6.62e-34 to 6.62607015e-34 J·s
+- Updated `h` from 6.62e-34 to 6.62607015e-34 J s
 - Updated `e` from 1.6e-19 to 1.602176634e-19 C
 - Updated `eps0` to use correct vacuum permittivity value
 - Replaced hardcoded `1.6e-19` with `const.e` in dipole moment calculations (lines 40, 51)
@@ -37,21 +37,21 @@ All physical constant definitions have been updated to use consistent, accurate 
 **Purpose**: Blackbody radiation calculation
 **Changes**:
 - Updated `q` from 1.602176565e-19 to 1.602176634e-19 C
-- Updated `h` from 6.62606957e-34 to 6.62607015e-34 J·s
+- Updated `h` from 6.62606957e-34 to 6.62607015e-34 J s
 - Updated `c` from 29979245800 to 2.99792458e10 cm/s (note: in cm/s)
 
 ### 4. functions/marcus_equation_stark.m
 **Purpose**: Marcus equation for charge transfer rates
 **Changes**:
 - Updated `epsilon0` from 8.854e-12 to 8.8541878128e-12 F/m
-- Updated `hbar` from 1.0546e-34 to 1.054571817e-34 J·s
+- Updated `hbar` from 1.0546e-34 to 1.054571817e-34 J s
 - Updated `k` from 1.3806e-23 to 1.380649e-23 J/K
 - Updated `q` from 1.6022e-19 to 1.602176634e-19 C
 
 ### 5. functions/TransferMatrix_generation.m
 **Purpose**: Optical transfer matrix calculations
 **Changes**:
-- Updated `h` from 6.62606957e-34 to 6.62607015e-34 J·s
+- Updated `h` from 6.62606957e-34 to 6.62607015e-34 J s
 - Updated `q` from 1.60217657e-19 to 1.602176634e-19 C
 
 ### 6. functions/pnParamsHCT.m
@@ -63,11 +63,11 @@ All physical constant definitions have been updated to use consistent, accurate 
 
 | Constant | Symbol | Value | Units | Used In |
 |----------|--------|-------|-------|---------|
-| Boltzmann (eV) | kB | 8.6173324e-5 | eV K^-1 | deviceparams, paramsRec |
-| Boltzmann (SI) | k | 1.380649e-23 | J K^-1 | deviceparams, marcus_equation_stark |
+| Boltzmann constant (eV) | kB | 8.6173324e-5 | eV K^-1 | deviceparams, paramsRec |
+| Boltzmann constant (SI) | k | 1.380649e-23 | J K^-1 | deviceparams, marcus_equation_stark |
 | Electron charge | e, q | 1.602176634e-19 | C | All files |
 | Planck constant | h | 6.62607015e-34 | J s | deviceparams, paramsRec, blackbody, TransferMatrix |
-| Reduced Planck | hbar | 1.054571817e-34 | J s | deviceparams, marcus_equation_stark |
+| Reduced Planck constant | hbar | 1.054571817e-34 | J s | deviceparams, marcus_equation_stark |
 | Speed of light | c | 2.99792458e8 | m s^-1 | deviceparams, paramsRec, TransferMatrix |
 | Speed of light | c | 2.99792458e10 | cm s^-1 | blackbody |
 | Vacuum permittivity | epsilon0 | 8.8541878128e-12 | F m^-1 | deviceparams, marcus_equation_stark |
