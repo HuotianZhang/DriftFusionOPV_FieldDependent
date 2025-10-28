@@ -209,9 +209,9 @@ classdef device_forMarcus
         function result = storeSolution(existingSolution, newSolution)
             % Consolidates the repeated pattern of checking if solution exists
             % and either initializing or appending to solution array
-            % If existingSolution is scalar 0, initialize with newSolution
+            % If existingSolution is empty or scalar 0, initialize with newSolution
             % Otherwise, append newSolution to existingSolution array
-            if isequal(existingSolution, 0)
+            if isempty(existingSolution) || isequal(existingSolution, 0)
                 result = newSolution;
             else
                 result = [existingSolution, newSolution];
