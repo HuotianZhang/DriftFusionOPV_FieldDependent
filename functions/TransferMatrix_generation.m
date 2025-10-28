@@ -58,10 +58,10 @@ for index = 1:size(layers,2)
 end
 t = thicknesses;
 
-% Constants
-h = 6.62606957e-34; 	% Js Planck's constant
-c = 2.99792458e8;	% m/s speed of light
-q = 1.60217657e-19;	% C electric charge
+% Physical constants (CODATA 2018 values)
+h = 6.62607015e-34;     % Planck constant [J s]
+c = 2.99792458e8;       % Speed of light [m s^-1]
+q = 1.602176634e-19;    % Elementary charge [C]
 
 % Calculate Incoherent power transmission through substrate
 % See Griffiths "Intro to Electrodynamics 3rd Ed. Eq. 9.86 & 9.87
