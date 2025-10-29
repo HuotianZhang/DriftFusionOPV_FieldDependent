@@ -1,4 +1,12 @@
 classdef paramsRec
+    % paramsRec - Recombination parameters for CT and Exciton states
+    %
+    % IMPORTANT NOTE ON THICKNESS PARAMETER:
+    % The thickness parameter is NO LONGER stored in this class.
+    % Thickness must be passed as a parameter to calcall() and absorptionSIm().
+    % The canonical source of thickness is deviceparams.Layers{}.tp (in cm).
+    % See docs/THICKNESS_PARAMETER.md for complete documentation.
+    
     properties
         const
         params
@@ -23,7 +31,8 @@ classdef paramsRec
             % const.kb already set above - no duplication needed
             const.bb=blackbody(const.T,const.Edistribution);%black body in units mA/cm^2/eV
 %             const.chemicalpot=0.9;
-            params.tickness=1e-7;%thickness of the device in m
+            % NOTE: Thickness is no longer stored in paramsRec. 
+            % It should be defined only in deviceparams.Layers{}.tp
             %params.sizeofsite=5e-10;%size of the site in m ( need to define it in terms of density of states) 
             params.Excitondesnity=1/power(5e-10,3);% in unit m^-3
 			params.nie=1.5;%refrective index of the medium
@@ -37,7 +46,7 @@ classdef paramsRec
             params.Ex.Number_Vibronic_Mode_final=15;%number of vibronic mode considered for the ground state
             params.Ex.hW=0.15;%main vibronic energy considered in eV
             params.Ex.sigma=0.001;%gaussian distribution for CT state
-            params.Ex.Dmus=3*3.33e-30/1.6e-19;%difference in static dipole moment (10 in DEbye ) then th
+            params.Ex.Dmus=3*3.33e-30/const.e;%difference in static dipole moment (10 in DEbye )
             params.Ex.numbrestate=2;
             %% CT properties
             params.CT.f=0.001;%oscillator strength of the CT state
@@ -48,7 +57,7 @@ classdef paramsRec
             params.CT.Number_Vibronic_Mode_final=15;%number of vibronic mode considered for the ground state
             params.CT.hW=0.15;%main vibronic energy considered in eV
             params.CT.sigma=0.001;%gaussian distribution for CT state
-            params.CT.Dmus=10*3.33e-30/1.6e-19;%difference in static dipole moment (10 in DEbye ) then th
+            params.CT.Dmus=10*3.33e-30/const.e;%difference in static dipole moment (10 in DEbye )
             params.CT.numbrestate=2;
             %%%%%%% add this to account for the effect of Hybredisation
             params.Vstar=0.020; % Coupling between S1 and CT in eV
@@ -267,7 +276,16 @@ classdef paramsRec
             %%%%%%%%%%%%%absorption
             params.results.alphaLJ=alphaLJ;
         end
-        function Prec=absorptionSIm(Prec)
+        function Prec=absorptionSIm(Prec, tickness)
+            % absorptionSIm - Calculate absorption spectrum and radiative properties
+            %
+            % Inputs:
+            %   Prec     - paramsRec object with CT and Ex parameters
+            %   tickness - Device thickness in meters (m)
+            %
+            % Note: Thickness must be provided as parameter. It is no longer
+            % stored in Prec.params.tickness. The canonical source is 
+            % deviceparams.Layers{}.tp (in cm).
             
             %%%%%%%%%%%%%%%%%%%absorption spectrum%%%%%%%%%%%%%%%%%
             Prec.params.CT = paramsRec.absorptionstate(Prec.params.CT, Prec.const);
@@ -299,7 +317,7 @@ classdef paramsRec
             %%%%%%%%%%%%%absorption
             int=1;
             for E=Einterp
-                AbsLJ(int) = 1-exp(-2*Prec.params.tickness*alphaLJ(int));
+                AbsLJ(int) = 1-exp(-2*tickness*alphaLJ(int));
                 int=int+1;
             end
             %%%%%%%%%%%%JSC rad%%%%%%%%%%%%%%%%%%%%%%
@@ -307,7 +325,7 @@ classdef paramsRec
             solarphlux           = interp1(Prec.const.solflux(:,1),Prec.const.solflux(:,2),Einterp);
             Jscrad               = trapz(Einterp, AbsLJ   .* solarphlux);
             J0rad                = trapz(Einterp, AbsLJ   .* bbinterp);
-            integralRadRec       = trapz(Einterp, alphaLJ .* bbinterp * 4 * Prec.params.tickness * Prec.params.nie^2);
+            integralRadRec       = trapz(Einterp, alphaLJ .* bbinterp * 4 * tickness * Prec.params.nie^2);
             radiativeEmission    = alphaLJ .* bbinterp * 4 * Prec.params.nie^2 * 1e-2;
             Prec.results.R0rad   = trapz(Einterp, radiativeEmission);% here R0rad is in cm-3%Epsilon,out isconsidered ot be equal to pi according to equation 23 in 10.1103/PhysRevB.90.035211  %radiative emission rate based on black body radiation
             Prec.results.Jscrad  = Jscrad;
@@ -319,10 +337,21 @@ classdef paramsRec
             % semilogy(results.Einterp,results.AbsLJ)
             
         end
-        function Prec=calcall(Prec)
+        function Prec=calcall(Prec, tickness)
+            % calcall - Calculate all recombination parameters
+            %
+            % Inputs:
+            %   Prec     - paramsRec object
+            %   tickness - Device thickness in meters (m)
+            %
+            % Note: Thickness must be provided as parameter. It is no longer
+            % stored in Prec.params.tickness. The canonical source is 
+            % deviceparams.Layers{}.tp (in cm), which should be converted
+            % to meters before calling this function.
+            
             Prec = paramsRec.update(Prec);
             Prec = paramsRec.calcFCWD(Prec);
-            Prec = paramsRec.absorptionSIm(Prec);
+            Prec = paramsRec.absorptionSIm(Prec, tickness);
             Prec = paramsRec.Calcrates(Prec);
 
         end

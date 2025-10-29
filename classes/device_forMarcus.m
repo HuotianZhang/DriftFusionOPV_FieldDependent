@@ -23,6 +23,9 @@ classdef device_forMarcus
     end
     methods(Static)
         function DV=device_forMarcus(DP,varargin)%run solution at equilibrium
+            % Initialize DV as a new instance
+            DV = device_forMarcus;
+            
             if length(varargin)==1 %will ==1 when there is input after DP. There is no input in the example_workflow.
                 DV.sol_eq=varargin{1};
             else
@@ -35,7 +38,7 @@ classdef device_forMarcus
             DP.Experiment_prop.wAC=0;
             DP.Experiment_prop.symm=0;
             DP.Experiment_prop.pulseon=0;
-            DP.Time_properties.tmax=1e-2;
+            DP.Time_properties.tmax=DV.tmax_eq;
             DP.Time_properties.tmesh_type = 2;
             DP=UpdateLayers(DP);
             DP = Xgrid(DP);
@@ -75,7 +78,7 @@ classdef device_forMarcus
                 %%%%%%%%%%%%%%%%%%%Do JV%%%%%%%%%%%%%%
                 p.solveropt.AbsTol=1e-6;
                 p.solveropt.RelTol=1e-3;
-                p.Time_properties.tmax=1e0;
+                p.Time_properties.tmax=DV.tmax_JV_dark;
                 p.Time_properties.tmesh_type=1;
                 p.Experiment_prop.V_fun_type = 'sweep';
                 p.Experiment_prop.V_fun_arg(1) = Vstart;
@@ -92,7 +95,7 @@ classdef device_forMarcus
                         %%%%%%%%%%%%%%%%%%%Do JV%%%%%%%%%%%%%%
                         p.solveropt.AbsTol=1e-6;
                         p.solveropt.RelTol=1e-3;
-                        p.Time_properties.tmax=1e-1;
+                        p.Time_properties.tmax=DV.tmax_JV_light;
                         p.Experiment_prop.V_fun_type = 'sweep';
                         p.Experiment_prop.V_fun_arg(1) = Vstart;
                         p.Experiment_prop.V_fun_arg(2) = Vend;
@@ -175,12 +178,12 @@ classdef device_forMarcus
                     %%%%%%%%%%%%%%%%%%%apply voltage pulse%%%%%%%%%%%%%%
                     p.solveropt.AbsTol=1e-6;
                     p.solveropt.RelTol=1e-3;
-                    p.Time_properties.tmax=1e-2;
+                    p.Time_properties.tmax=DV.tmax_transient;
                     p.Time_properties.tmesh_type=1;
                     p.Experiment_prop.V_fun_type = 'square_sweep';
                     p.Experiment_prop.V_fun_arg(1) = V;
                     p.Experiment_prop.V_fun_arg(2) = Vstep+V;
-                    p.Experiment_prop.V_fun_arg(3) = 1e-4;%-4
+                    p.Experiment_prop.V_fun_arg(3) = DV.V_pulse_rise;
                     p.Experiment_prop.V_fun_arg(4) = pulse_length;%length of pulse in us
                     p.Experiment_prop.V_fun_arg(5) = 1e-8;
                     p=update_time(p);

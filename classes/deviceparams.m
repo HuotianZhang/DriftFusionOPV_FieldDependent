@@ -1,4 +1,12 @@
 classdef deviceparams 
+    % deviceparams - Device parameters for OPV simulation
+    %
+    % IMPORTANT NOTE ON THICKNESS PARAMETER:
+    % Device thickness is stored in Layers{}.tp (in centimeters).
+    % This is the SINGLE SOURCE OF TRUTH for thickness.
+    % When calling paramsRec.calcall(), convert to meters: tickness_m = tp * 1e-2
+    % See docs/THICKNESS_PARAMETER.md for complete documentation.
+    
     properties
         physical_const
         Layers
@@ -29,11 +37,17 @@ classdef deviceparams
                 
                 % Physical constants
                 physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
+                physical_const.k = 1.380649e-23;     % Boltzmann constant [J K^-1] (CODATA 2018)
                 physical_const.T = 300;              % Temperature [K]
                 physical_const.kBT = physical_const.kB * physical_const.T;  % Thermal energy [eV] - cached calculation
                 physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
                 physical_const.q = 1;                % in e
-                physical_const.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculations
+                physical_const.e = 1.602176634e-19;  % Charge of an electron in Coulombs (CODATA 2018)
+                physical_const.h = 6.62607015e-34;   % Planck constant [J s] (CODATA 2018)
+                physical_const.hbar = 1.054571817e-34; % Reduced Planck constant [J s] = h/(2π)
+                physical_const.c = 2.99792458e8;     % Speed of light in vacuum [m s^-1]
+                physical_const.epsilon0 = 8.8541878128e-12; % Vacuum permittivity [F m^-1] (CODATA 2018)
+                physical_const.me = 9.1093837015e-31; % Electron mass [kg] (CODATA 2018)
                 
                 % Solver options
                 solveropt.AbsTol=1e-6;
