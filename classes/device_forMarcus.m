@@ -58,10 +58,7 @@ classdef device_forMarcus
                 
             end
             p.light_properties.Int=Gen;%multiplied by Params.Genstrength
-            p.Time_properties.tmesh_type = 2;
-            p.Time_properties.tpoints = 1000;
-            p=update_time(p);
-            p=Timemesh(p);
+            p=update_time_and_mesh(p, [], 2, 1000);
             if p.light_properties.OM == 2
                 p=Transfer_matrix_generation_profile(p);
             end
@@ -76,15 +73,9 @@ classdef device_forMarcus
             if Gen==0
                 p=DV.sol_eq.params;
                 %%%%%%%%%%%%%%%%%%%Do JV%%%%%%%%%%%%%%
-                p.solveropt.AbsTol=1e-6;
-                p.solveropt.RelTol=1e-3;
-                p.Time_properties.tmax=DV.tmax_JV_dark;
-                p.Time_properties.tmesh_type=1;
-                p.Experiment_prop.V_fun_type = 'sweep';
-                p.Experiment_prop.V_fun_arg(1) = Vstart;
-                p.Experiment_prop.V_fun_arg(2) = Vend;
-                p.Experiment_prop.V_fun_arg(3) = p.Time_properties.tmax;
-                p=update_time(p);
+                p=configure_solver_params(p, 1e-6, 1e-3);
+                p=configure_voltage_sweep(p, Vstart, Vend, 1e0);
+                p=update_time_and_mesh(p, 1e0, 1, []);
   
                 disp('Doing JV')
                 DV.sol_JV = device_forMarcus.storeSolution(DV.sol_JV, pndriftHCT_forMarcus(DV.sol_eq,p));
@@ -93,14 +84,9 @@ classdef device_forMarcus
                     if Gen==sol_Jsc.params.light_properties.Int
                         p=sol_Jsc.params;
                         %%%%%%%%%%%%%%%%%%%Do JV%%%%%%%%%%%%%%
-                        p.solveropt.AbsTol=1e-6;
-                        p.solveropt.RelTol=1e-3;
-                        p.Time_properties.tmax=DV.tmax_JV_light;
-                        p.Experiment_prop.V_fun_type = 'sweep';
-                        p.Experiment_prop.V_fun_arg(1) = Vstart;
-                        p.Experiment_prop.V_fun_arg(2) = Vend;
-                        p.Experiment_prop.V_fun_arg(3) = p.Time_properties.tmax;
-                        p=update_time(p);
+                        p=configure_solver_params(p, 1e-6, 1e-3);
+                        p=configure_voltage_sweep(p, Vstart, Vend, 1e-1);
+                        p=update_time_and_mesh(p, 1e-1, [], []);
                         disp('Doing JV')
                         DV.sol_JV = device_forMarcus.storeSolution(DV.sol_JV, pndriftHCT_forMarcus(sol_Jsc,p));
                     else
@@ -117,12 +103,10 @@ classdef device_forMarcus
             p.Experiment_prop.pulseon=0;
             p.light_properties.Int=Gen;
             p.Experiment_prop.BC=4;
-            p.Time_properties.tmax=DV.sim_time_Voc_eq1;  % Use configurable property
-            p=update_time(p);
+            p=update_time_and_mesh(p, 1e-2, [], []);%-5
             disp('Getting equilibrium for Symmetric model 1 ')
             ssol_eq=pndriftHCT_forMarcus(ssol_eq,p);
-            p.Time_properties.tmax=DV.sim_time_Voc_eq2;  % Use configurable property
-            p=update_time(p);
+            p=update_time_and_mesh(p, 1e-2, [], []);%-3
             disp('Getting equilibrium for Symmetric model 2 ')
             DV.ssol_Voc = device_forMarcus.storeSolution(DV.ssol_Voc, pndriftHCT_forMarcus(ssol_eq,p));
             % % % % % % % %
@@ -131,13 +115,8 @@ classdef device_forMarcus
             for ssol_Voc = DV.ssol_Voc
                 if Gen==ssol_Voc.params.light_properties.Int
                     p=ssol_Voc.params;
-                    p.pulse_properties.pulseon=1;
-                    p.Time_properties.tmax = DV.sim_time_TPV;           % Use configurable property
-                    p.pulse_properties.pulselen = DV.sim_pulse_len_TPV;  % Use configurable property
-                    p.pulse_properties.tstart = DV.sim_pulse_start_TPV;  % Use configurable property
-                    p.pulse_properties.pulseint =2*Gen;
-                    p.Time_properties.tpoints = 1000;
-                    p=update_time(p);
+                    p=configure_pulse_properties(p, 1, 5e-5, 2e-6, 1e-6, 2*Gen, 1000);
+                    p=update_time_and_mesh(p);
                     disp('Doing TPV ')
                     DV.ssol_TPV = device_forMarcus.storeSolution(DV.ssol_TPV, pndriftHCT_forMarcus(ssol_Voc,p));
                 else
@@ -155,13 +134,8 @@ classdef device_forMarcus
             for ssol_Voc = DV.ssol_Voc
                 if Gen==ssol_Voc.params.light_properties.Int
                     p=ssol_Voc.params;
-                    p.pulse_properties.pulseon=1;
-                    p.Time_properties.tmax = DV.sim_time_TAS;           % Use configurable property
-                    p.pulse_properties.pulselen = DV.sim_pulse_len_TAS;  % Use configurable property
-                    p.pulse_properties.tstart = DV.sim_pulse_start_TAS;  % Use configurable property
-                    p.pulse_properties.pulseint = DV.sim_pulse_int_TAS;  % Use configurable property
-                    p.Time_properties.tpoints = 1000;
-                    p=update_time(p);
+                    p=configure_pulse_properties(p, 1, 10e-9, 2e-13, 1e-12, 500, 1000);
+                    p=update_time_and_mesh(p);
                     disp('Doing TAS ')
                     DV.ssol_TAS = device_forMarcus.storeSolution(DV.ssol_TAS, pndriftHCT_forMarcus(ssol_Voc,p));
                 else
@@ -176,9 +150,7 @@ classdef device_forMarcus
                 if Gen==sol_JV.params.light_properties.Int
                     p=sol_JV.params;
                     %%%%%%%%%%%%%%%%%%%apply voltage pulse%%%%%%%%%%%%%%
-                    p.solveropt.AbsTol=1e-6;
-                    p.solveropt.RelTol=1e-3;
-                    p.Time_properties.tmax=DV.tmax_transient;
+                    p=configure_solver_params(p, 1e-6, 1e-3);
                     p.Time_properties.tmesh_type=1;
                     p.Experiment_prop.V_fun_type = 'square_sweep';
                     p.Experiment_prop.V_fun_arg(1) = V;
@@ -186,15 +158,14 @@ classdef device_forMarcus
                     p.Experiment_prop.V_fun_arg(3) = DV.V_pulse_rise;
                     p.Experiment_prop.V_fun_arg(4) = pulse_length;%length of pulse in us
                     p.Experiment_prop.V_fun_arg(5) = 1e-8;
-                    p=update_time(p);
+                    p=update_time_and_mesh(p, 1e-2, 1, []);
                     disp('Doing simulation')
                     finalpoint=find(dfana.calcVapp(sol_JV)>V,1);
                     vapp=dfana.calcVapp(sol_JV);
                     if  max(vapp>V)==1
                     p.Experiment_prop.V_fun_arg(1) = vapp(finalpoint);
-                    
                     p.Experiment_prop.V_fun_arg(2) = Vstep+vapp(finalpoint);
-                    p=update_time(p);
+                    p=update_time_and_mesh(p);
                     sol_JV.sol=sol_JV.sol(finalpoint,:,:);
                     DV.sol_Vpulse = device_forMarcus.storeSolution(DV.sol_Vpulse, pndriftHCT_forMarcus(sol_JV,p));
                     Success=1;

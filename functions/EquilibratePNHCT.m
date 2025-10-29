@@ -15,8 +15,7 @@ p.Experiment_prop.Vapp=Vapp;
 p.Experiment_prop.figson = 0;
 p.Experiment_prop.V_fun_type = 'constant';
 p.Experiment_prop.V_fun_arg(1) = Vapp;
-p.solveropt.AbsTol=1e-3;
-p.solveropt.RelTol=1e-1;
+p=configure_solver_params(p, 1e-3, 1e-1);
 p.pulse_properties.pulseon=0;
 p.light_properties.Int=0;
 for ii=1:1:p.layers_num
@@ -30,10 +29,9 @@ end
 sol.sol=0;
 p=UpdateLayers(p);
 p = Xgrid(p);
-p=update_time(p);
 p.Time_properties.tmax = 1e-9;
 p.Time_properties.t0 = p.Time_properties.tmax/1e3;
-p=Timemesh(p);
+p=update_time_and_mesh(p);
 % Run with initial solution
 tic
 disp('first solution')
@@ -42,11 +40,10 @@ toc
 tic
 p.Experiment_prop.equilibrium=0;
 p.Experiment_prop.BC=2;
-p.solveropt.AbsTol=1e-6;
-p.solveropt.RelTol=1e-3;
+p=configure_solver_params(p, 1e-6, 1e-3);
 p.Time_properties.tmax = 1e-3;
 p.Time_properties.t0 = p.Time_properties.tmax/1e3;
-p=Timemesh(p);
+p=update_time_and_mesh(p);
 disp('second solution')
 p.Experiment_prop.mobset=1;
 p.Time_properties.tmax = 1e-6;
