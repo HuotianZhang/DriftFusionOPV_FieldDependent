@@ -9,9 +9,23 @@ classdef device_forMarcus
         ssol_TPV=0;
         ssol_TAS=0;
         sol_Vpulse=0;
+        
+        % Simulation time configuration properties (in seconds)
+        tmax_eq = 1e-2;           % Time for equilibrium simulation
+        tmax_JV_dark = 1e0;       % Time for dark JV sweep
+        tmax_JV_light = 1e-1;     % Time for light JV sweep
+        tmax_Voc_1 = 1e-2;        % Time for first Voc equilibration
+        tmax_Voc_2 = 1e-2;        % Time for second Voc equilibration
+        tmax_TPV = 5e-5;          % Time for TPV measurement
+        tmax_TAS = 10e-9;         % Time for TAS measurement
+        tmax_transient = 1e-2;    % Time for current transient
+        V_pulse_rise = 1e-4;      % Voltage pulse rise time
     end
     methods(Static)
         function DV=device_forMarcus(DP,varargin)%run solution at equilibrium
+            % Initialize DV as a new instance
+            DV = device_forMarcus;
+            
             if length(varargin)==1 %will ==1 when there is input after DP. There is no input in the example_workflow.
                 DV.sol_eq=varargin{1};
             else
@@ -24,7 +38,7 @@ classdef device_forMarcus
             DP.Experiment_prop.wAC=0;
             DP.Experiment_prop.symm=0;
             DP.Experiment_prop.pulseon=0;
-            DP.Time_properties.tmax=1e-2;
+            DP.Time_properties.tmax=DV.tmax_eq;
             DP.Time_properties.tmesh_type = 2;
             DP=UpdateLayers(DP);
             DP = Xgrid(DP);
@@ -174,7 +188,7 @@ classdef device_forMarcus
                     p.Experiment_prop.V_fun_type = 'square_sweep';
                     p.Experiment_prop.V_fun_arg(1) = V;
                     p.Experiment_prop.V_fun_arg(2) = Vstep+V;
-                    p.Experiment_prop.V_fun_arg(3) = 1e-4;%-4
+                    p.Experiment_prop.V_fun_arg(3) = DV.V_pulse_rise;
                     p.Experiment_prop.V_fun_arg(4) = pulse_length;%length of pulse in us
                     p.Experiment_prop.V_fun_arg(5) = 1e-8;
                     p=update_time_and_mesh(p, 1e-2, 1, []);
