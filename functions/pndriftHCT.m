@@ -72,8 +72,7 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
 % Set up partial differential equation (pdepe) (see MATLAB pdepe help for details of c, f, and s)
     function [c,f,s] = pdex4pde(x,t,u,DuDx)
         sim=0;
-        kB=params.physical_const.kB;
-        T=params.physical_const.T;
+        kBT=params.physical_const.kBT;
         q=params.physical_const.q;
         if params.Experiment_prop.symm==1
             if x>=xmax/2
@@ -135,22 +134,22 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
             0
             1];
         
-        f = [  (params.Layers{kk}.mue*((u(1))*-DuDx(4)+kB*T*DuDx(1)));
-            (params.Layers{kk}.mup*((u(2))*DuDx(4)+kB*T*DuDx(2)));
+        f = [  (params.Layers{kk}.mue*((u(1))*-DuDx(4)+kBT*DuDx(1)));
+            (params.Layers{kk}.mup*((u(2))*DuDx(4)+kBT*DuDx(2)));
             0;
             DuDx(4);
             0;];
         if(x<params.Layers{kk}.XL+params.Layers{kk}.XiL && kk>1 && x>params.Layers{kk}.XL)
-            f = [(params.Layers{kk}.mue*((u(1))*(-DuDx(4)+((-1)^sim)*params.Layers{kk}.DEAL-((-1)^sim)*params.Layers{kk}.DN0CL*kB*T)+kB*T*DuDx(1)));
-                (params.Layers{kk}.mup*((u(2))*(DuDx(4)-((-1)^sim)*params.Layers{kk}.DIPL-((-1)^sim)*params.Layers{kk}.DN0VL*kB*T)+kB*T*DuDx(2)));
+            f = [(params.Layers{kk}.mue*((u(1))*(-DuDx(4)+((-1)^sim)*params.Layers{kk}.DEAL-((-1)^sim)*params.Layers{kk}.DN0CL*kBT)+kBT*DuDx(1)));
+                (params.Layers{kk}.mup*((u(2))*(DuDx(4)-((-1)^sim)*params.Layers{kk}.DIPL-((-1)^sim)*params.Layers{kk}.DN0VL*kBT)+kBT*DuDx(2)));
                 0;
                 DuDx(4);
                 0;];
         end
         if(x>params.Layers{kk}.XR-params.Layers{kk}.XiR && kk<params.layers_num && x<params.Layers{kk}.XR )
             
-            f = [(params.Layers{kk}.mue*((u(1))*(-DuDx(4)+((-1)^sim)*params.Layers{kk}.DEAR-((-1)^sim)*params.Layers{kk}.DN0CR*kB*T)+kB*T*DuDx(1)));
-                (params.Layers{kk}.mup*((u(2))*(DuDx(4)-((-1)^sim)*params.Layers{kk}.DIPR-((-1)^sim)*params.Layers{kk}.DN0VR*kB*T)+kB*T*DuDx(2)));
+            f = [(params.Layers{kk}.mue*((u(1))*(-DuDx(4)+((-1)^sim)*params.Layers{kk}.DEAR-((-1)^sim)*params.Layers{kk}.DN0CR*kBT)+kBT*DuDx(1)));
+                (params.Layers{kk}.mup*((u(2))*(DuDx(4)-((-1)^sim)*params.Layers{kk}.DIPR-((-1)^sim)*params.Layers{kk}.DN0VR*kBT)+kBT*DuDx(2)));
                 0;
                 DuDx(4);
                 0;];
@@ -158,7 +157,7 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
         end
         if isfield(params.Layers{kk},'r0_Ex')
             r0_Ex=params.Layers{kk}.r0_Ex;%start with r0=3nm
-            kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
+            kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kBT));
         else
             r0_Ex=0;
             
@@ -168,9 +167,9 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
         else
             r0_CT=0;
         end
-        kdis=params.Layers{kk}.kdis*exp(q*abs(DuDx(4))*r0_CT/(kB*T));
-        kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
-        s = [kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)); 
+        kdis=params.Layers{kk}.kdis*exp(q*abs(DuDx(4))*r0_CT/(kBT));
+        kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kBT));
+        s = [kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kBT)); 
             kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%start with r0=3nm
             kdisexc*(u(5))+params.Layers{kk}.kfor*((u(1)*u(2)))-(kdis*u(3)+params.Layers{kk}.krec*(u(3)-params.Layers{kk}.CT0))-params.Layers{kk}.kforEx*(u(3));
             (q/params.Layers{kk}.epp)*(-u(1)+u(2)-params.Layers{kk}.NA+params.Layers{kk}.ND);

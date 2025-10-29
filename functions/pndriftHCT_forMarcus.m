@@ -77,10 +77,8 @@ solstruct.sol = sol;
 % PDE Definition Function
     function [c, f, s] = pdex4pde(x, t, u, DuDx)
         % Cache frequently used constants to avoid repeated field access
-        kB = physical_const.kB;
-        T = physical_const.T;
+        kbT = physical_const.kBT;  % Use precomputed thermal energy
         q = physical_const.q;
-        kbT = kB * T;  % Precompute thermal energy
         
         sim = 0;
         x_orig = x;
