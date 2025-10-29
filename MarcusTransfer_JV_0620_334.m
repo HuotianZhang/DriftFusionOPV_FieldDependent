@@ -40,7 +40,7 @@ k_bak_values = kCTLE(:, 2)*10;
 
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
 result_struct(ii).offset = offset;
-Prec.params.tickness        = 100 * 1e-9;           % m     % thickness of the active layer
+tickness                    = 100 * 1e-9;           % m     % thickness of the active layer
 Prec.params.Ex.DG0          = 1.4;                 
 Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
 Prec.params.Ex.f            = 2.56e-0;
@@ -57,7 +57,7 @@ Prec.params.RCTE            = 1e-1;%ratio CT to S1
 Prec.params.Excitondesnity  = 8e27;
 Prec.params.Vstar           = 0.000;
 Prec.const.T                = 300;
-Prec                        = paramsRec.calcall(Prec); % Update the Recombination Parameters
+Prec                        = paramsRec.calcall(Prec, tickness); % Update the Recombination Parameters (pass thickness)
 
 krecCT  = Prec.params.CT.results.knr;
 krecex  = Prec.params.Ex.results.knr;
@@ -80,7 +80,7 @@ DP = deviceparams(['parameters\',deviceParameterFile]);
 
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile
 DP.Time_properties.tpoints  = 100;
-DP.Layers{activelayer}.tp   = Prec.params.tickness * 100; % [cm] = [m] * 100
+DP.Layers{activelayer}.tp   = tickness * 100; % [cm] = [m] * 100 - Store thickness in deviceparams
 
 
     % DP.Layers{2}.r0_CT=0; %R0 for field dependence is 1 nm

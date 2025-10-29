@@ -2,7 +2,7 @@
 
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
 % fixed model parameters for the efficiency limit exploration
-Prec.params.tickness        = 100 * 1e-9;
+tickness                    = 100 * 1e-9;
 Prec.params.Ex.f            = 3;Prec.params.CT.f            = 1e-2;
 Prec.params.Ex.sigma        = 0.0001;Prec.params.CT.sigma        = 0.0001;
 Prec.params.Ex.numbrestate  = 1;Prec.params.CT.numbrestate  = 1;
@@ -20,7 +20,7 @@ offset_LECT=0.1;
 Prec.params.Ex.DG0          = 2.5;Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset_LECT;
 
 Prec.const.T                = 300;
-Prec                        = paramsRec.calcall(Prec); % Update the Recombination Parameters
+Prec                        = paramsRec.calcall(Prec, tickness); % Update the Recombination Parameters (pass thickness)
 %% initialise the device parameters
 
 
@@ -29,7 +29,7 @@ DP = deviceparams(['parameters\',deviceParameterFile]);
 activelayer = 2;
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile
 DP.Time_properties.tpoints  = 100;
-DP.Layers{activelayer}.tp   = Prec.params.tickness * 100; % [cm] = [m] * 100
+DP.Layers{activelayer}.tp   = tickness * 100; % [cm] = [m] * 100 - Store thickness in deviceparams
 % Active Layer Index                % integer
 NC          = 5e19;    %set to the same degeneracy as the CT state
 mobility    = 1e-3;     % Charge Carrier Mobility           % cm^2 / V / s
@@ -64,7 +64,7 @@ for Li=0.15%0.06:0.01:0.1
             Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset_LECT;
             ECS = Prec.params.CT.DG0-offset_CTCS;
             
-            Prec                        = paramsRec.calcall(Prec); % Update the Recombination Parameters
+            Prec                        = paramsRec.calcall(Prec, tickness); % Update the Recombination Parameters (pass thickness)
             DP=DP.generateDeviceparams(NC,activelayer,mobility,0,0,Prec,ECS,4,Hab_CT_dis,L0_CT_dis,marcusrate,Hab_LE_dis,L0_LE_dis);
             
             %% Run the JV scans here

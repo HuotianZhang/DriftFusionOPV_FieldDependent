@@ -4,7 +4,7 @@ addpath(genpath(pwd)); % add folders to path
 
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
 offset                      = 0.25;                  % eV    % energy difference between the excited state and the CT state
-Prec.params.tickness        = 10 * 1e-9;           % m     % thickness of the active layer
+tickness                    = 10 * 1e-9;           % m     % thickness of the active layer
 Prec.params.Ex.DG0          = 1.36;                 
 Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
 Prec.params.Ex.f            = 2.56;
@@ -21,7 +21,7 @@ Prec.params.RCTE            = 1e-2;
 Prec.params.Excitondesnity  = 5e27;
 Prec.params.Vstar           = 0.000;
 Prec.const.T                = 300;
-Prec                        = paramsRec.calcall(Prec); % Update the Recombination Parameters
+Prec                        = paramsRec.calcall(Prec, tickness); % Update the Recombination Parameters (pass thickness)
 
 krecCT  = Prec.params.CT.results.knr;
 krecex  = Prec.params.Ex.results.knr;
@@ -49,13 +49,13 @@ clear tableres
 Thickness_list=[10,20,40,60,80,100,200,400];
 count=0;
 for tickness_active_layer=Thickness_list
-Prec.params.tickness        = tickness_active_layer * 1e-9;           % m     % thickness of the active layer
+tickness        = tickness_active_layer * 1e-9;           % m     % thickness of the active layer
 Prec.params.Excitondesnity  = 5e27;
-Prec                        = paramsRec.calcall(Prec); % Update the Recombination Parameters
+Prec                        = paramsRec.calcall(Prec, tickness); % Update the Recombination Parameters (pass thickness)
 
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile
 DP.Time_properties.tpoints  = 100;
-DP.Layers{activelayer}.tp   = Prec.params.tickness * 100; % [cm] = [m] * 100
+DP.Layers{activelayer}.tp   = tickness * 100; % [cm] = [m] * 100 - Store thickness in deviceparams
 
 DP = DP.generateDeviceparams(NC, activelayer, mobility, kdis, kdisex, Prec, Kfor, 0);
 % clear NC activelayer Tq1exp mobility kdis kdisex

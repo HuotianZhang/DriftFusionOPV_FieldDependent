@@ -9,9 +9,23 @@ classdef device_forMarcus
         ssol_TPV=0;
         ssol_TAS=0;
         sol_Vpulse=0;
+        
+        % Configurable simulation time properties (magic numbers replaced)
+        sim_time_Voc_eq1 = 1e-2;        % Time for Voc equilibration step 1 [s]
+        sim_time_Voc_eq2 = 1e-2;        % Time for Voc equilibration step 2 [s]
+        sim_time_TPV = 5e-5;            % Time for TPV simulation [s]
+        sim_pulse_len_TPV = 2e-6;       % TPV pulse length [s]
+        sim_pulse_start_TPV = 1e-6;     % TPV pulse start time [s]
+        sim_time_TAS = 10e-9;           % Time for TAS simulation [s]
+        sim_pulse_len_TAS = 2e-13;      % TAS pulse length [s]
+        sim_pulse_start_TAS = 1e-12;    % TAS pulse start time [s]
+        sim_pulse_int_TAS = 500;        % TAS pulse intensity multiplier
     end
     methods(Static)
         function DV=device_forMarcus(DP,varargin)%run solution at equilibrium
+            % Initialize DV as a new instance
+            DV = device_forMarcus;
+            
             if length(varargin)==1 %will ==1 when there is input after DP. There is no input in the example_workflow.
                 DV.sol_eq=varargin{1};
             else
@@ -24,7 +38,7 @@ classdef device_forMarcus
             DP.Experiment_prop.wAC=0;
             DP.Experiment_prop.symm=0;
             DP.Experiment_prop.pulseon=0;
-            DP.Time_properties.tmax=1e-2;
+            DP.Time_properties.tmax=DV.tmax_eq;
             DP.Time_properties.tmesh_type = 2;
             DP=UpdateLayers(DP);
             DP = Xgrid(DP);
@@ -53,12 +67,7 @@ classdef device_forMarcus
             end
             %%%%%%%%%%%%%%%%%%%%%%
             disp('Getting JSC')
-            try
-                DV.sol_Jsc==0;
-                DV.sol_Jsc=pndriftHCT_forMarcus(DV.sol_eq,p);
-            catch
-                DV.sol_Jsc=[DV.sol_Jsc,pndriftHCT_forMarcus(DV.sol_eq,p)];
-            end
+            DV.sol_Jsc = device_forMarcus.storeSolution(DV.sol_Jsc, pndriftHCT_forMarcus(DV.sol_eq,p));
         end
 %%%%%%%%use pndriftHCT_forMarcus to get JV curve      
         function DV=runsolJV(DV,Gen,Vstart,Vend)
@@ -69,7 +78,7 @@ classdef device_forMarcus
                 %%%%%%%%%%%%%%%%%%%Do JV%%%%%%%%%%%%%%
                 p.solveropt.AbsTol=1e-6;
                 p.solveropt.RelTol=1e-3;
-                p.Time_properties.tmax=1e0;
+                p.Time_properties.tmax=DV.tmax_JV_dark;
                 p.Time_properties.tmesh_type=1;
                 p.Experiment_prop.V_fun_type = 'sweep';
                 p.Experiment_prop.V_fun_arg(1) = Vstart;
@@ -78,12 +87,7 @@ classdef device_forMarcus
                 p=update_time(p);
   
                 disp('Doing JV')
-                try
-                    DV.sol_JV==0;
-                    DV.sol_JV=pndriftHCT_forMarcus(DV.sol_eq,p);
-                catch
-                    DV.sol_JV=[DV.sol_JV,pndriftHCT_forMarcus(DV.sol_eq,p)];
-                end
+                DV.sol_JV = device_forMarcus.storeSolution(DV.sol_JV, pndriftHCT_forMarcus(DV.sol_eq,p));
             else
                 for sol_Jsc = DV.sol_Jsc
                     if Gen==sol_Jsc.params.light_properties.Int
@@ -91,19 +95,14 @@ classdef device_forMarcus
                         %%%%%%%%%%%%%%%%%%%Do JV%%%%%%%%%%%%%%
                         p.solveropt.AbsTol=1e-6;
                         p.solveropt.RelTol=1e-3;
-                        p.Time_properties.tmax=1e-1;
+                        p.Time_properties.tmax=DV.tmax_JV_light;
                         p.Experiment_prop.V_fun_type = 'sweep';
                         p.Experiment_prop.V_fun_arg(1) = Vstart;
                         p.Experiment_prop.V_fun_arg(2) = Vend;
                         p.Experiment_prop.V_fun_arg(3) = p.Time_properties.tmax;
                         p=update_time(p);
                         disp('Doing JV')
-                        try
-                            DV.sol_JV==0;
-                            DV.sol_JV=pndriftHCT_forMarcus(sol_Jsc,p);
-                        catch
-                            DV.sol_JV=[DV.sol_JV,pndriftHCT_forMarcus(sol_Jsc,p)];
-                        end
+                        DV.sol_JV = device_forMarcus.storeSolution(DV.sol_JV, pndriftHCT_forMarcus(sol_Jsc,p));
                     else
                         disp('get the Jsc first')
                     end
@@ -118,20 +117,14 @@ classdef device_forMarcus
             p.Experiment_prop.pulseon=0;
             p.light_properties.Int=Gen;
             p.Experiment_prop.BC=4;
-            p.Time_properties.tmax=1e-2;%-5
+            p.Time_properties.tmax=DV.sim_time_Voc_eq1;  % Use configurable property
             p=update_time(p);
             disp('Getting equilibrium for Symmetric model 1 ')
             ssol_eq=pndriftHCT_forMarcus(ssol_eq,p);
-            p.Time_properties.tmax=1e-2;%-3
+            p.Time_properties.tmax=DV.sim_time_Voc_eq2;  % Use configurable property
             p=update_time(p);
             disp('Getting equilibrium for Symmetric model 2 ')
-            try
-                DV.ssol_Voc==0;
-                DV.ssol_Voc=pndriftHCT_forMarcus(ssol_eq,p);
-                
-            catch
-                DV.ssol_Voc=[DV.ssol_Voc,pndriftHCT_forMarcus(ssol_eq,p)];
-            end
+            DV.ssol_Voc = device_forMarcus.storeSolution(DV.ssol_Voc, pndriftHCT_forMarcus(ssol_eq,p));
             % % % % % % % %
         end
         function DV=runsolTPV(DV,Gen)
@@ -139,20 +132,14 @@ classdef device_forMarcus
                 if Gen==ssol_Voc.params.light_properties.Int
                     p=ssol_Voc.params;
                     p.pulse_properties.pulseon=1;
-                    p.Time_properties.tmax = 5e-5;        % Time
-                    p.pulse_properties.pulselen = 2e-6;
-                    p.pulse_properties.tstart=1e-6;
+                    p.Time_properties.tmax = DV.sim_time_TPV;           % Use configurable property
+                    p.pulse_properties.pulselen = DV.sim_pulse_len_TPV;  % Use configurable property
+                    p.pulse_properties.tstart = DV.sim_pulse_start_TPV;  % Use configurable property
                     p.pulse_properties.pulseint =2*Gen;
                     p.Time_properties.tpoints = 1000;
                     p=update_time(p);
                     disp('Doing TPV ')
-                    try
-                        DV.ssol_TPV==0;
-                        DV.ssol_TPV=pndriftHCT_forMarcus(ssol_Voc,p);
-                    catch
-                        DV.ssol_TPV=[DV.ssol_TPV,pndriftHCT_forMarcus(ssol_Voc,p)];
-                        
-                    end
+                    DV.ssol_TPV = device_forMarcus.storeSolution(DV.ssol_TPV, pndriftHCT_forMarcus(ssol_Voc,p));
                 else
                     disp('get the Voc first')
                     
@@ -169,20 +156,14 @@ classdef device_forMarcus
                 if Gen==ssol_Voc.params.light_properties.Int
                     p=ssol_Voc.params;
                     p.pulse_properties.pulseon=1;
-                    p.Time_properties.tmax = 10e-9;        % Time
-                    p.pulse_properties.pulselen = 2e-13;
-                    p.pulse_properties.tstart=1e-12;
-                    p.pulse_properties.pulseint =500;
+                    p.Time_properties.tmax = DV.sim_time_TAS;           % Use configurable property
+                    p.pulse_properties.pulselen = DV.sim_pulse_len_TAS;  % Use configurable property
+                    p.pulse_properties.tstart = DV.sim_pulse_start_TAS;  % Use configurable property
+                    p.pulse_properties.pulseint = DV.sim_pulse_int_TAS;  % Use configurable property
                     p.Time_properties.tpoints = 1000;
                     p=update_time(p);
                     disp('Doing TAS ')
-                    try
-                        DV.ssol_TAS==0;
-                        DV.ssol_TAS=pndriftHCT_forMarcus(ssol_Voc,p);
-                    catch
-                        DV.ssol_TAS=[DV.ssol_TAS,pndriftHCT_forMarcus(ssol_Voc,p)];
-                        
-                    end
+                    DV.ssol_TAS = device_forMarcus.storeSolution(DV.ssol_TAS, pndriftHCT_forMarcus(ssol_Voc,p));
                 else
                     disp('get the Voc first')
                 end
@@ -197,12 +178,12 @@ classdef device_forMarcus
                     %%%%%%%%%%%%%%%%%%%apply voltage pulse%%%%%%%%%%%%%%
                     p.solveropt.AbsTol=1e-6;
                     p.solveropt.RelTol=1e-3;
-                    p.Time_properties.tmax=1e-2;
+                    p.Time_properties.tmax=DV.tmax_transient;
                     p.Time_properties.tmesh_type=1;
                     p.Experiment_prop.V_fun_type = 'square_sweep';
                     p.Experiment_prop.V_fun_arg(1) = V;
                     p.Experiment_prop.V_fun_arg(2) = Vstep+V;
-                    p.Experiment_prop.V_fun_arg(3) = 1e-4;%-4
+                    p.Experiment_prop.V_fun_arg(3) = DV.V_pulse_rise;
                     p.Experiment_prop.V_fun_arg(4) = pulse_length;%length of pulse in us
                     p.Experiment_prop.V_fun_arg(5) = 1e-8;
                     p=update_time(p);
@@ -215,12 +196,7 @@ classdef device_forMarcus
                     p.Experiment_prop.V_fun_arg(2) = Vstep+vapp(finalpoint);
                     p=update_time(p);
                     sol_JV.sol=sol_JV.sol(finalpoint,:,:);
-                    try
-                        DV.sol_Vpulse==0;
-                        DV.sol_Vpulse=pndriftHCT_forMarcus(sol_JV,p);
-                    catch
-                        DV.sol_Vpulse=[DV.sol_Vpulse,pndriftHCT_forMarcus(sol_JV,p)];
-                    end
+                    DV.sol_Vpulse = device_forMarcus.storeSolution(DV.sol_Vpulse, pndriftHCT_forMarcus(sol_JV,p));
                     Success=1;
                     break; 
                     end
@@ -228,6 +204,20 @@ classdef device_forMarcus
             end
             if  Success==0
                  disp('get the JV at the right light intensity first and up to the right voltage')
+            end
+        end
+    end
+    methods(Static, Access=private)
+        % Helper method to consolidate repeated try-catch pattern for storing solutions
+        function result = storeSolution(existingSolution, newSolution)
+            % Consolidates the repeated pattern of checking if solution exists
+            % and either initializing or appending to solution array
+            % If existingSolution is scalar 0 (most common) or empty, initialize with newSolution
+            % Otherwise, append newSolution to existingSolution array
+            if isequal(existingSolution, 0) || isempty(existingSolution)
+                result = newSolution;
+            else
+                result = [existingSolution, newSolution];
             end
         end
     end

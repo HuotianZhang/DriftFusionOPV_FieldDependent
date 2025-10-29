@@ -61,10 +61,7 @@ else
     Experiment_prop.V_fun_arg(2) = 1;
     Experiment_prop.V_fun_arg(3) = Time_properties.tmax;
     Excelfilename='PINDevice.xlsx';
-    
-    params= deviceparams(physical_const,solveropt,...
-        pulse_properties,light_properties,Time_properties,Experiment_prop,Excelfilename);
-    
+    params = deviceparams(Excelfilename);
     
 end
 end

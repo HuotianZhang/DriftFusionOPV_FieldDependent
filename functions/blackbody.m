@@ -1,8 +1,9 @@
 function y=blackbody(T,Edistribution)
-q = 1.602176565e-19;
-h = 6.62606957e-34;
-kbeV=8.6173324e-5;% technically kT/q, approx T=302K
-c = 29979245800;
+% Physical constants (CODATA 2018 values)
+q = 1.602176634e-19;    % Elementary charge [C]
+h = 6.62607015e-34;     % Planck constant [J s]
+kbeV=8.6173324e-5;      % Boltzmann constant [eV K^-1]
+c = 2.99792458e10;      % Speed of light [cm s^-1]
 i=0;
 % bb=0;
 bb(:,1)=Edistribution';

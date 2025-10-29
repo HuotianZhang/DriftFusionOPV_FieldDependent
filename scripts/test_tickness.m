@@ -19,7 +19,7 @@ Kfor=1e-11*exp(-Kfor_list_activation(1)/temp/Prec.const.kb)/exp(-Kfor_list_activ
     Prec.params.Ex.DG0=1.63;
     Prec.params.CT.f=5e-4;
     offset=0.37;
-    Prec.params.tickness=AL_thickness*1e-2;%in m
+    tickness=AL_thickness*1e-2;%in m
     Prec.params.CT.DG0=Prec.params.Ex.DG0-offset;
     Prec.params.RCTE=0.5;
     Prec.params.Ex.Li=0.15;
@@ -28,7 +28,7 @@ Kfor=1e-11*exp(-Kfor_list_activation(1)/temp/Prec.const.kb)/exp(-Kfor_list_activ
     Prec.params.Ex.f=5;
     Prec.params.Vstar=0.001;
     Prec.const.T=temp;
-    Prec=paramsRec.calcall(Prec);%this line calculated the different properties of the states.
+    Prec=paramsRec.calcall(Prec, tickness);%this line calculated the different properties of the states (pass thickness)
     krecCT=Prec.params.CT.results.knr;krecex=Prec.params.Ex.results.knr;
     Voc=Prec.results.Vocrad-Prec.results.Dvnr;
     %% in this part we generate a device with a certain number of properties
