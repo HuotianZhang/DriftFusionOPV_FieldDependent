@@ -53,7 +53,7 @@ k_bak_values = kCTLE(:, 2) * 10;
 Prec = paramsRec;
 
 % Set parameters
-Prec.params.tickness        = 100 * 1e-9;           % m
+tickness                    = 100 * 1e-9;           % m
 Prec.params.Ex.DG0          = 1.4;                 
 Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
 Prec.params.Ex.f            = 2.56e-0;
@@ -70,7 +70,7 @@ Prec.params.RCTE            = 1e-1;
 Prec.params.Excitondesnity  = 8e27;
 Prec.params.Vstar           = 0.000;
 Prec.const.T                = 300;
-Prec                        = paramsRec.calcall(Prec);
+Prec                        = paramsRec.calcall(Prec, tickness);
 
 % Device parameters
 activelayer = 2;
@@ -85,7 +85,7 @@ DP = deviceparams(['parameters/',deviceParameterFile]);
 
 DP.light_properties.OM      = 0;
 DP.Time_properties.tpoints  = 100;
-DP.Layers{activelayer}.tp   = Prec.params.tickness * 100;
+DP.Layers{activelayer}.tp   = tickness * 100;
 
 DP.Layers{2}.krec       = 1e9;
 DP.Layers{2}.krecexc    = 1/lifetime_ex*1e12;

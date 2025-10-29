@@ -47,6 +47,13 @@ Complete refactoring of the Marcus Transfer J-V simulation workflow:
 - Flexible parameter input and data-only output
 - Example scripts: `example_run_MarcusTransfer.m`, `example_external_model.m`
 
+#### Thickness Parameter Refactoring
+Resolved circular dependency for device thickness parameter:
+- **[Thickness Parameter Guide](docs/THICKNESS_PARAMETER.md)** - Complete documentation
+- Thickness now stored only in `deviceparams.Layers{}.tp`
+- Updated `paramsRec.calcall()` to accept thickness as parameter
+- Clearer data flow and eliminated synchronization issues
+
 ### ⚡ Performance Optimizations
 
 #### pndriftHCT_forMarcus.m Optimization
