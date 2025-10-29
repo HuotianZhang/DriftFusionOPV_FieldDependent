@@ -4,13 +4,15 @@ if nargin>0
     
 else
     
-    %Physical constants (CODATA 2018 values)
+    
+    %Physical constants
     
     physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
     physical_const.T = 300;              % Temperature [K]
+    physical_const.kBT = physical_const.kB * physical_const.T;  % Thermal energy [eV] - cached for performance
     physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
     physical_const.q = 1;                % in e
-    physical_const.e = 1.602176634e-19;  % Charge of an electron in Coulombs (CODATA 2018)
+    physical_const.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculations
     
     % Solver options
     solveropt.AbsTol=1e-6;
@@ -59,10 +61,7 @@ else
     Experiment_prop.V_fun_arg(2) = 1;
     Experiment_prop.V_fun_arg(3) = Time_properties.tmax;
     Excelfilename='PINDevice.xlsx';
-    
-    params= deviceparams(physical_const,solveropt,...
-        pulse_properties,light_properties,Time_properties,Experiment_prop,Excelfilename);
-    
+    params = deviceparams(Excelfilename);
     
 end
 end

@@ -93,8 +93,8 @@ classdef dfana
            
             Ecb = dev.EA-V;                                 % Conduction band potential
             Evb = dev.IP-V;                                 % Valence band potential
-            Efn = real(Ecb+(par.physical_const.kB*par.physical_const.T/par.physical_const.q)*log(n./dev.N0C));        % Electron quasi-Fermi level
-            Efp = real(Evb-(par.physical_const.kB*par.physical_const.T/par.physical_const.q)*log(p./dev.N0V));        % Hole quasi-Fermi level
+            Efn = real(Ecb+(par.physical_const.kBT/par.physical_const.q)*log(n./dev.N0C));        % Electron quasi-Fermi level
+            Efp = real(Evb-(par.physical_const.kBT/par.physical_const.q)*log(p./dev.N0V));        % Hole quasi-Fermi level
             
         end
         
@@ -138,8 +138,8 @@ classdef dfana
                 Efp_ihalf = Efp_ihalf-V;
                 
             elseif par.prob_distro_function == 'Boltz'
-                Efn_ihalf = real(Ecb_ihalf+(par.kB*par.T/par.q)*log(n./Ncmat));        % Electron quasi-Fermi level
-                Efp_ihalf = real(Evb_ihalf-(par.kB*par.T/par.q)*log(p./Nvmat));        % Hole quasi-Fermi level
+                Efn_ihalf = real(Ecb_ihalf+(par.physical_const.kBT/par.physical_const.q)*log(n./Ncmat));        % Electron quasi-Fermi level
+                Efp_ihalf = real(Evb_ihalf-(par.physical_const.kBT/par.physical_const.q)*log(p./Nvmat));        % Hole quasi-Fermi level
             end
             
             Efn = Efn_ihalf;% zeros(length(t), length(xmesh));
@@ -194,8 +194,8 @@ classdef dfana
                 end
                 
             elseif par.prob_distro_function == 'Boltz'
-                Efn_l = real(par.EA(1)+(par.kB*par.T/par.q)*log(n(:,1)./Ncmat(:,1)));        % Electron quasi-Fermi level
-                Efp_l = real(par.IP(1)-(par.kB*par.T/par.q)*log(p(:,1)./Nvmat(:,1)));        % Hole quasi-Fermi level
+                Efn_l = real(par.EA(1)+(par.physical_const.kBT/par.physical_const.q)*log(n(:,1)./Ncmat(:,1)));        % Electron quasi-Fermi level
+                Efp_l = real(par.IP(1)-(par.physical_const.kBT/par.physical_const.q)*log(p(:,1)./Nvmat(:,1)));        % Hole quasi-Fermi level
             end
             
             Efn = Efn_l + deltaEfn;
@@ -235,9 +235,9 @@ classdef dfana
             end
            
             dev = dfana.develop_half(sol);
-            rg = dev.kdis.*exp((abs(FV_ihalf)).*dev.r0_CT./(sol.params.physical_const.kB*sol.params.physical_const.T)).*CT_ihalf-dev.kfor.*(n_ihalf.*p_ihalf);%-1e8*(n_ihalf.*p_ihalf-dev.ni)./(n_ihalf+p_ihalf);
+            rg = dev.kdis.*exp((abs(FV_ihalf)).*dev.r0_CT./(sol.params.physical_const.kBT)).*CT_ihalf-dev.kfor.*(n_ihalf.*p_ihalf);%-1e8*(n_ihalf.*p_ihalf-dev.ni)./(n_ihalf+p_ihalf);
 %             EXfunction= sol.params.light_properties.Genstrength-dev.kdisexc.*(Ex_ihalf)-dev.krecexc.*(Ex_ihalf-dev.Ex0)+dev.kforEx.*(CT_ihalf);
-%             CTfunction=dev.kdisexc.*(Ex_ihalf)+dev.kfor.*(n_ihalf.*p_ihalf)-dev.kdis.*exp(-(FV_ihalf).*dev.r0./(sol.params.physical_const.kB*sol.params.physical_const.T)).*CT_ihalf+dev.krec.*(CT_ihalf-dev.CT0)-dev.kforEx.*(CT_ihalf);
+%             CTfunction=dev.kdisexc.*(Ex_ihalf)+dev.kfor.*(n_ihalf.*p_ihalf)-dev.kdis.*exp(-(FV_ihalf).*dev.r0./(sol.params.physical_const.kBT)).*CT_ihalf+dev.krec.*(CT_ihalf-dev.CT0)-dev.kforEx.*(CT_ihalf);
 %             figure
 %             semilogy(CTfunction(end,:))
             djndx = - dndt + rg;%g - r.tot;
@@ -463,8 +463,8 @@ classdef dfana
             end
             
             if par.prob_distro_function == 'Boltz'
-                Dn_mat = mue_mat*par.kB*par.T;
-                Dp_mat = muh_mat*par.kB*par.T;
+                Dn_mat = mue_mat*par.physical_const.kBT;
+                Dp_mat = muh_mat*par.physical_const.kBT;
             end
             
             % Particle fluxes
@@ -480,14 +480,14 @@ classdef dfana
                     jdd.adiff = zeros(length(t), length(xout));
                     jdd.adrift = zeros(length(t), length(xout));
                 case 1
-                    jdd.cdiff = par.mobseti*(-mu_cat.*par.kB*par.T.*dcdx);
+                    jdd.cdiff = par.mobseti*(-mu_cat.*par.physical_const.kBT.*dcdx);
                     jdd.cdrift = par.mobseti*(mu_cat.*cloc.*-dVdx);
                     jdd.adiff = zeros(length(t), length(xout));
                     jdd.adrift = zeros(length(t), length(xout));
                 case 2
-                    jdd.cdiff = par.mobseti*(-mu_cat.*par.kB*par.T.*dcdx);
+                    jdd.cdiff = par.mobseti*(-mu_cat.*par.physical_const.kBT.*dcdx);
                     jdd.cdrift = par.mobseti*(mu_cat.*cloc.*-dVdx);
-                    jdd.adiff = par.mobseti*-(-mu_ani.*par.kB*par.T.*dadx);
+                    jdd.adiff = par.mobseti*-(-mu_ani.*par.physical_const.kBT.*dadx);
                     jdd.adrift = par.mobseti*-(mu_ani.*aloc.*dVdx);
             end
             

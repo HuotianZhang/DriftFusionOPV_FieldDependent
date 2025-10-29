@@ -15,20 +15,20 @@ classdef paramsRec
     methods (Static)
         function Prec=paramsRec
 %             const.V=30;
-            % Physical constants (consolidated - CODATA 2018 values)
-            const.kb=8.6173324e-5;              % Boltzmann constant [eV K^-1]
-            const.me=9.1093837015e-31;          % Electron mass [kg] (CODATA 2018)
-            const.h=6.62607015e-34;             % Planck constant [J] (CODATA 2018)
-            const.e=1.602176634e-19;            % Elementary charge [C] (CODATA 2018)
-            const.T=300;                        % Temperature of the system [K]
-            const.Edistribution=0.5:0.005:3;    % Energy distribution for absorption spectra (linearly spaced)
-            const.c=2.99792458e8;               % Speed of light in vacuum [m s^-1]
-            const.eps0=4*pi*8.8541878128e-12*6.242e+18; % Vacuum permittivity in eV.m-1*4pi
+            const.kb=8.6173324e-5;  % Boltzmann constant in eV K-1 (single source of truth)
+            const.me=9.1e-31;% electron mass in kg
+            const.h=6.62e-34;% planck constant in Joule
+            const.e=1.6e-19;% elementary charge
+            const.T=300;% Temperature of the system
+            const.Edistribution=0.5:0.005:3;%the energy distribution for the absorption spectra%need to be linearly spaced
+            const.c=300e6;%speed of light in vaccum in ms-1
+            const.eps0=4*pi*8.85e-12*6.242e+18;%vaccum permetivity in eV.m-1*4pi
             data = load('spectrum.mat'); % in ./Data
             const.solflux(:,1) = data.E;
             const.solflux(:,2) = data.photonFlux;% photonFlux has units mA/cm^2/eV 
             % phflux = interp1( data.E,photonFlux,Energy);
             % [~,const.solflux] = ShockleyQueisser(1);%used to get the sun spectrum
+            % const.kb already set above - no duplication needed
             const.bb=blackbody(const.T,const.Edistribution);%black body in units mA/cm^2/eV
 %             const.chemicalpot=0.9;
             % NOTE: Thickness is no longer stored in paramsRec. 
@@ -121,7 +121,7 @@ classdef paramsRec
         end
         
         function y=FC_em(params,const,E,m,n,laguerrecalc)
-            kb=8.6173324e-5;
+            kb=const.kb;  % Use const.kb instead of hardcoded value
             T=const.T;
             if (n==0)
                 y=exp(-params.S)*power(params.S,m)/factorial(m)*exp(-power(params.DG0-(E+m*params.hW+params.L0),2)/4/abs(params.L0)/kb/T);%*exp(-(n+m)*params.hW/kb/T);
