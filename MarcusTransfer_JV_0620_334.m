@@ -76,7 +76,7 @@ mobility    = 5e-2;     % Charge Carrier Mobility           % cm^2 / V / s
 deviceParameterFile = 'DeviceParameters_Default.xlsx';
 
 %deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(['parameters\',deviceParameterFile]);
+DP = deviceparams(['parameters/',deviceParameterFile]);
 
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile
 DP.Time_properties.tpoints  = 100;

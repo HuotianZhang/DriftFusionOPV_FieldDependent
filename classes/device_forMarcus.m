@@ -215,6 +215,7 @@ classdef device_forMarcus
                     p.Experiment_prop.V_fun_arg(2) = Vstep+vapp(finalpoint);
                     p=update_time(p);
                     sol_JV.sol=sol_JV.sol(finalpoint,:,:);
+                    %p.Experiment_prop.Vapp = vapp;
                     try
                         DV.sol_Vpulse==0;
                         DV.sol_Vpulse=pndriftHCT_forMarcus(sol_JV,p);

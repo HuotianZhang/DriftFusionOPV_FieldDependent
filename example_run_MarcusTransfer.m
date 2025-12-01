@@ -7,9 +7,9 @@ addpath(genpath(pwd));
 
 % Define input parameters
 VV = 1.2;         % Voltage endpoint (will simulate from 0 to 1.2 V)
-offset = 0.05;    % Energy offset in eV (can be any positive value)
-lifetime_ex = 10; % Exciton lifetime in picoseconds (ps)
-lambda = 0.5;     % Reorganization energy (eV)
+offset = 0.3;    % Energy offset in eV (can be any positive value)
+lifetime_ex = 100; % Exciton lifetime in picoseconds (ps)
+lambda = 0.3;     % Reorganization energy (eV)
 RCT = 1.5;        % Charge transfer distance (nm)
 
 % Call the function

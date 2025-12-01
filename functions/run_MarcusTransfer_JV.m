@@ -115,6 +115,6 @@ DV2 = device_forMarcus.runsolJsc(DV2, Gen);
 DV2 = device_forMarcus.runsolJV(DV2, Gen, Vstart, Vend);
 
 % Extract JV data without plotting
-[~, ~, ~, JJ, VV] = dfplot.JV_new(DV2.sol_JV(end), 0);
+[~, ~, ~, JJ, VV] = dfplot.JV_new(DV2.sol_JV, 0);
 
 end
