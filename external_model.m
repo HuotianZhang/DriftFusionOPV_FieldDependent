@@ -1,4 +1,4 @@
-function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
+function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 % external_model - External model for J-V simulation using Marcus transfer
 %
 % This function provides a simple interface to run Marcus transfer J-V simulations.
@@ -17,6 +17,10 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
 %                 Example: 0.5 eV
 %   RCT         - Charge transfer distance (nm)
 %                 Example: 1.5 nm
+%   E_gap       - Energy gap (eV)
+%                 Example: 1.8 eV
+%   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
+%                 Example: 0.001 kOhms·cm²
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²) corresponding to the voltage array VV
@@ -27,7 +31,9 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
 %   lifetime_ex = 10;
 %   lambda = 0.5;
 %   RCT = 1.5;
-%   JJ = external_model(VV, offset, lifetime_ex, lambda, RCT);
+%   E_gap = 1.8;
+%   R_s = 0.001;
+%   JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 %   plot(VV, JJ);
 %   xlabel('Voltage [V]');
 %   ylabel('Current Density [mA/cm^2]');
@@ -39,7 +45,7 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
 
 % Call run_MarcusTransfer_JV with the provided parameters
 % The function will determine Vstart and Vend from the VV range
-[JJ_output, VV_output] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT);
+[JJ_output, VV_output] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 
 % Interpolate to ensure JJ has the same dimension as input VV
 % This is necessary because run_MarcusTransfer_JV may return a different

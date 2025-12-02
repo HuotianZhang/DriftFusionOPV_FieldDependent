@@ -6,16 +6,18 @@
 addpath(genpath(pwd));
 
 % Define input parameters
-VV = 1.2;         % Voltage endpoint (will simulate from 0 to 1.2 V)
+VV = 0.8;         % Voltage endpoint (will simulate from 0 to 1.2 V)
 offset = 0.3;    % Energy offset in eV (can be any positive value)
 lifetime_ex = 100; % Exciton lifetime in picoseconds (ps)
 lambda = 0.3;     % Reorganization energy (eV)
-RCT = 1.5;        % Charge transfer distance (nm)
+RCT = 0;        % Charge transfer distance (nm)
+E_gap = 1.8;     % Energy gap (eV)
+R_s = 0.001;     % Series resistance per area (kOhms/cm²)
 
 % Call the function
-fprintf('Running simulation with VV = %.1f V, offset = %.2f eV, lifetime_ex = %.1f ps, lambda = %.2f eV, RCT = %.2f nm\n', ...
-        VV, offset, lifetime_ex, lambda, RCT);
-[JJ, VV_out] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT);
+fprintf('Running simulation with VV = %.1f V, offset = %.2f eV, lifetime_ex = %.1f ps, lambda = %.2f eV, RCT = %.2f nm\n, E_gap = %.2f eV, R_s = %.4f kOhms·cm²\n', ...
+        VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
+[JJ, VV_out] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 
 % Display results
 fprintf('Simulation complete.\n');
@@ -35,13 +37,13 @@ grid on;
 % This demonstrates the flexibility of the new function-based approach
 fprintf('\nRunning multiple simulations...\n');
 offsets = [0.00, 0.10, 0.20, 0.30];  % Different offset values
-lifetime_values = [10];  % Different lifetime values
+lifetime_values = [100];  % Different lifetime values
 
 figure('Name', 'Multiple J-V Curves');
 hold on;
 for i = 1:length(offsets)
     for j = 1:length(lifetime_values)
-        [JJ, VV_out] = run_MarcusTransfer_JV(1.2, offsets(i), lifetime_values(j), lambda, RCT);
+        [JJ, VV_out] = run_MarcusTransfer_JV(1.2, offsets(i), lifetime_values(j), lambda, RCT, E_gap, R_s);
         plot(VV_out, JJ, 'DisplayName', sprintf('offset=%.2feV, \\tau=%.1fps', offsets(i), lifetime_values(j)));
     end
 end

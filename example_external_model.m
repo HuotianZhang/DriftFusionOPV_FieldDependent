@@ -16,10 +16,12 @@ offset = 0.05;       % Energy offset (eV)
 lifetime_ex = 10;    % Exciton lifetime (ps)
 lambda = 0.5;        % Reorganization energy (eV)
 RCT = 1.5;           % Charge transfer distance (nm)
+E_gap = 1.8;         % Energy gap (eV)
+R_s = 0.001;         % Series resistance per area (kOhms·cm²)
 
 % Call external_model
 fprintf('Running external_model...\n');
-JJ = external_model(VV, offset, lifetime_ex, lambda, RCT);
+JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 
 % Plot results
 figure('Name', 'External Model Example 1');
@@ -41,7 +43,7 @@ figure('Name', 'External Model - Offset Comparison');
 hold on;
 for i = 1:length(offsets)
     fprintf('  Computing for offset = %.2f eV...\n', offsets(i));
-    JJ = external_model(VV, offsets(i), lifetime_ex, lambda, RCT);
+    JJ = external_model(VV, offsets(i), lifetime_ex, lambda, RCT, E_gap, R_s);
     plot(VV, JJ, 'LineWidth', 2, 'DisplayName', sprintf('offset = %.2f eV', offsets(i)));
 end
 hold off;

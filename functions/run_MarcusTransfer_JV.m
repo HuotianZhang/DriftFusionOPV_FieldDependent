@@ -1,4 +1,4 @@
-function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT)
+function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 % run_MarcusTransfer_JV - Run Marcus transfer J-V simulation
 %
 % This function performs a drift-diffusion simulation with Marcus transfer 
@@ -18,13 +18,17 @@ function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT)
 %                 Example: 0.5 eV
 %   RCT         - Charge transfer distance (nm)
 %                 Example: 1.5 nm
+%   E_gap       - Energy gap (eV)
+%                 Example: 1.8 eV
+%   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
+%                 Example: 0.001 kOhms·cm²
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²)
 %   VV - Voltage array (V)
 %
 % Example:
-%   [JJ, VV] = run_MarcusTransfer_JV([0:0.1:1.2], 0.05, 10, 0.5, 1.5);
+%   [JJ, VV] = run_MarcusTransfer_JV([0:0.1:1.2], 0.05, 10, 0.5, 1.5, 1.8, 0.001);
 %   plot(VV, JJ);
 %   xlabel('Voltage [V]');
 %   ylabel('Current Density [mA/cm^2]');
@@ -54,7 +58,7 @@ Prec = paramsRec;
 
 % Set parameters
 Prec.params.tickness        = 100 * 1e-9;           % m
-Prec.params.Ex.DG0          = 1.4;                 
+Prec.params.Ex.DG0          = E_gap;                % eV
 Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
 Prec.params.Ex.f            = 2.56e-0;
 Prec.params.CT.f            = 2e-4;
@@ -116,5 +120,9 @@ DV2 = device_forMarcus.runsolJV(DV2, Gen, Vstart, Vend);
 
 % Extract JV data without plotting
 [~, ~, ~, JJ, VV] = dfplot.JV_new(DV2.sol_JV, 0);
+
+% Apply series resistance correction to the J-V characteristics
+% This accounts for voltage drop across series resistance in the device
+[VV, JJ] = apply_series_resistance(VV, JJ, R_s); % Use provided Rs value
 
 end
