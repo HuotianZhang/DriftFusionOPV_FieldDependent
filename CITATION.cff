@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+title: "DriftFusion for OPV with Field-Dependent Charge Transfer"
+url: "https://github.com/HuotianZhang/DriftFusionOPV_FieldDependent"
+repository-code: "https://github.com/HuotianZhang/DriftFusionOPV_FieldDependent"
+authors:
+  - family-names: Azzouzi
+    given-names: Mohammed
+    affiliation: Imperial College London
+  - family-names: Barnes
+    given-names: Piers
+  - family-names: Calado
+    given-names: Phil
+  - family-names: Zhang
+    given-names: Huotian
