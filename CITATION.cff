@@ -7,7 +7,6 @@ repository-code: "https://github.com/HuotianZhang/DriftFusionOPV_FieldDependent"
 authors:
   - family-names: Azzouzi
     given-names: Mohammed
-    affiliation: Imperial College London
   - family-names: Barnes
     given-names: Piers
   - family-names: Calado
