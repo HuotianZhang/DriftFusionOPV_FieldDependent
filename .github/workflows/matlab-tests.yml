@@ -1,0 +1,34 @@
+name: MATLAB tests
+
+# Only run when code or input data changes (docs-only changes are skipped)
+on:
+  push:
+    branches: [DriftFusionOPV_FieldDepdent_2.0]
+    paths:
+      - '**.m'
+      - 'parameters/**'
+      - 'optical_data/**'
+      - 'resourceFiles/**'
+      - '.github/workflows/matlab-tests.yml'
+  pull_request:
+    paths:
+      - '**.m'
+      - 'parameters/**'
+      - 'optical_data/**'
+      - 'resourceFiles/**'
+      - '.github/workflows/matlab-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: matlab-actions/setup-matlab@v3
+        with:
+          # paramsRec uses laguerreL
+          products: Symbolic_Math_Toolbox
+          cache: true
+      - uses: matlab-actions/run-command@v3
+        with:
+          command: results = runtests('tests'); disp(table(results)); assertSuccess(results);

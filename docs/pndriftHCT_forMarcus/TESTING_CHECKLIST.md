@@ -275,8 +275,8 @@ params.light_properties.OM = 2;
 
 ### Documentation
 - [ ] Read OPTIMIZATION_SUMMARY.md
-- [ ] Read docs/pndriftHCT_forMarcus_optimizations.md
-- [ ] Read docs/BEFORE_AFTER_COMPARISON.md
+- [ ] Read docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md
+- [ ] Read docs/pndriftHCT_forMarcus/BEFORE_AFTER_COMPARISON.md
 
 ## Summary
 

@@ -25,7 +25,7 @@ Prec                        = paramsRec.calcall(Prec); % Update the Recombinatio
 
 
 deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(['parameters\',deviceParameterFile]);
+DP = deviceparams(fullfile('parameters',deviceParameterFile));
 activelayer = 2;
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile
 DP.Time_properties.tpoints  = 100;

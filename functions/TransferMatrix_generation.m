@@ -45,7 +45,7 @@ thicknesses = [1000 100 25 activelayertickness 10 150];  % thickness of each cor
 % function of position in the device and output the calculated short circuit current
 % under AM1.5G illumination (assuming 100% internal quantum efficiency)
 activeLayer = 4; % index of material layer where photocurrent is generated
-folder='\optical_data';
+folder='optical_data';
 %
 %------------END USER INPUT PARAMETERS SPECIFICATION-------------------
 
@@ -167,7 +167,7 @@ function ntotal = LoadRefrIndex(folder,name,wavelengths)
 
 %Data in IndRefr, Column names in IndRefr_names
 % [IndRefr,IndRefr_names]=xlsread('Index_of_Refraction_library.xls');
-nkfile=fopen([pwd folder '\' name '_nk.txt']);
+nkfile=fopen(fullfile(pwd,folder,[name '_nk.txt']));
 nkarray=textscan(nkfile,'%f %f %f','HeaderLines', 0);
 fclose(nkfile);
 % Load index of refraction data in spread sheet, will crash if misspelled

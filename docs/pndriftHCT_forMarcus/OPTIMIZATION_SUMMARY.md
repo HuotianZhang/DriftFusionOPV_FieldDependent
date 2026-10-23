@@ -76,14 +76,14 @@ Optimize `pndriftHCT_forMarcus.m` to improve computational performance while mai
 - **Better formatting**: Aligned boundary condition cases
 - **Cached external properties** (case 3): `ext_prop = params.External_prop`
 
-### 2. File: `docs/pndriftHCT_forMarcus_optimizations.md` (NEW)
+### 2. File: `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md` (NEW)
 - Comprehensive documentation of all optimizations
 - Performance comparison and expected improvements
 - Backward compatibility guarantee
 - Testing recommendations
 - Future optimization opportunities
 
-### 3. File: `docs/pndriftHCT_forMarcus_explanation.md`
+### 3. File: `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md`
 - Added new section on recent performance optimizations
 - Link to detailed optimization documentation
 
@@ -194,8 +194,8 @@ assert(max_diff < 1e-10, 'Results differ beyond numerical precision');
 ## Files Modified
 
 1. ✅ `functions/pndriftHCT_forMarcus.m` - Main optimization
-2. ✅ `docs/pndriftHCT_forMarcus_optimizations.md` - New documentation
-3. ✅ `docs/pndriftHCT_forMarcus_explanation.md` - Updated with optimization notes
+2. ✅ `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md` - New documentation
+3. ✅ `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md` - Updated with optimization notes
 
 ## Validation
 

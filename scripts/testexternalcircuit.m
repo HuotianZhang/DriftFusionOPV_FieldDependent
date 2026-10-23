@@ -37,7 +37,7 @@ NC=2e19;activelayer=2;Kfor=1e-11;%V in V, K in S-1, NC in Cm-3, Jsc in mA cm-2,
 mobility=3e-4;kdis=1.3e10;kdisex=1e11;% Tq1 in s,mobility in Cm2V-1s-1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 deviceParameterFile='DeviceParameters_Default.xlsx';
-DP = deviceparams(['parameters\',deviceParameterFile]);
+DP = deviceparams(fullfile('parameters',deviceParameterFile));
 
 DP.light_properties.OM=0;%to consider the transfer matrix generation profile
 DP.Time_properties.tpoints=100;

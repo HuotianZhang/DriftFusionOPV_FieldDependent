@@ -42,12 +42,12 @@ kdis        = 1e10;     % Rate Constant CT dissociation     % 1 / s
 kdisex      = 1e11;     % Rate Constatn Ex dissociation     % 1 / s
 mobility    = 5e-4;     % Charge Carrier Mobility           % cm^2 / V / s
 
-deviceParameterFile = uigetfile('parameters\DeviceParameters_Default.xlsx');
+deviceParameterFile = uigetfile(fullfile('parameters','DeviceParameters_Default.xlsx'));
 if isequal(deviceParameterFile,0)
     deviceParameterFile = 'DeviceParameters_Default.xlsx';
 end
 %deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(['parameters\',deviceParameterFile]);
+DP = deviceparams(fullfile('parameters',deviceParameterFile));
 
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile
 DP.Time_properties.tpoints  = 100;
