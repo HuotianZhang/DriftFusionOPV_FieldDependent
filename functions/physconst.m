@@ -1,0 +1,12 @@
+function c = physconst()
+% physconst - Physical constants (CODATA 2018, SI)
+c.q     = 1.602176634e-19;    % elementary charge (C)
+c.kB    = 1.380649e-23;       % Boltzmann constant (J/K)
+c.kB_eV = c.kB/c.q;           % Boltzmann constant (eV/K)
+c.h     = 6.62607015e-34;     % Planck constant (J s)
+c.hbar  = c.h/(2*pi);         % reduced Planck constant (J s)
+c.c     = 299792458;          % speed of light (m/s)
+c.eps0  = 8.8541878128e-12;   % vacuum permittivity (F/m)
+c.me    = 9.1093837015e-31;   % electron mass (kg)
+c.debye = 3.33564e-30;        % 1 Debye (C m)
+end

@@ -28,11 +28,12 @@ classdef deviceparams
                 % the excel spreadsheat.
                 
                 % Physical constants
-                physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
+                pc = physconst();
+                physical_const.kB = pc.kB_eV;        % Boltzmann constant [eV K^-1]
                 physical_const.T = 300;              % Temperature [K]
-                physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
+                physical_const.epp0 = pc.eps0*1e-2/pc.q;   % vacuum permittivity in e^2 eV^-1 cm^-1
                 physical_const.q = 1;                % in e
-                physical_const.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculations
+                physical_const.e = pc.q;             % Charge of an electron in Coulombs for current calculations
                 
                 % Solver options
                 solveropt.AbsTol=1e-6;
@@ -195,7 +196,7 @@ classdef deviceparams
                 'kforEx',34, ...
                 'krecexc',35);
             DP.layers_num=length(data.data(:,1));
-            epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
+            epp0 = DP.physical_const.epp0;        % e^2 eV^-1 cm^-1
             for ii=1:1:DP.layers_num
                 DP.Layers{ii}.epp=data.data(ii,col.epp)*epp0; % Dielectric constant
                 DP.Layers{ii}.EA = data.data(ii,col.EA);        % Conduction band energy

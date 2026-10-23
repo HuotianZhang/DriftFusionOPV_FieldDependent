@@ -1,8 +1,9 @@
 function y=blackbody(T,Edistribution)
-q = 1.602176565e-19;
-h = 6.62606957e-34;
-kbeV=8.6173324e-5;% technically kT/q, approx T=302K
-c = 29979245800;
+pc = physconst();
+q = pc.q;
+h = pc.h;
+kbeV = pc.kB_eV;
+c = pc.c*100;   % cm/s
 i=0;
 % bb=0;
 bb(:,1)=Edistribution';

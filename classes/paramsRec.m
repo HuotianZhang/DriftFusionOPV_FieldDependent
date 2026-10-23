@@ -7,20 +7,20 @@ classdef paramsRec
     methods (Static)
         function Prec=paramsRec
 %             const.V=30;
-            const.kb=8.6173324e-5;
-            const.me=9.1e-31;% electron mass in kg
-            const.h=6.62e-34;% planck constant in Joule
-            const.e=1.6e-19;% elementary charge
+            pc=physconst();
+            const.kb=pc.kB_eV;% boltzmann constant in eV K-1
+            const.me=pc.me;% electron mass in kg
+            const.h=pc.h;% planck constant in Joule
+            const.e=pc.q;% elementary charge
             const.T=300;% Temperature of the system
             const.Edistribution=0.5:0.005:3;%the energy distribution for the absorption spectra%need to be linearly spaced
-            const.c=300e6;%speed of light in vaccum in ms-1
-            const.eps0=4*pi*8.85e-12*6.242e+18;%vaccum permetivity in eV.m-1*4pi
+            const.c=pc.c;%speed of light in vaccum in ms-1
+            const.eps0=4*pi*pc.eps0/pc.q;%vaccum permetivity in eV.m-1*4pi
             data = load(repo_path('resourceFiles','spectrum.mat'));
             const.solflux(:,1) = data.E;
             const.solflux(:,2) = data.photonFlux;% photonFlux has units mA/cm^2/eV 
             % phflux = interp1( data.E,photonFlux,Energy);
             % [~,const.solflux] = ShockleyQueisser(1);%used to get the sun spectrum
-            const.kb=8.6173324e-5;% boltzmann constant in eV K-1
             const.bb=blackbody(const.T,const.Edistribution);%black body in units mA/cm^2/eV
 %             const.chemicalpot=0.9;
             params.tickness=1e-7;%thickness of the device in m
@@ -37,7 +37,7 @@ classdef paramsRec
             params.Ex.Number_Vibronic_Mode_final=15;%number of vibronic mode considered for the ground state
             params.Ex.hW=0.15;%main vibronic energy considered in eV
             params.Ex.sigma=0.001;%gaussian distribution for CT state
-            params.Ex.Dmus=3*3.33e-30/1.6e-19;%difference in static dipole moment (10 in DEbye ) then th
+            params.Ex.Dmus=3*pc.debye/pc.q;%difference in static dipole moment (10 in DEbye ) then th
             params.Ex.numbrestate=2;
             %% CT properties
             params.CT.f=0.001;%oscillator strength of the CT state
@@ -48,7 +48,7 @@ classdef paramsRec
             params.CT.Number_Vibronic_Mode_final=15;%number of vibronic mode considered for the ground state
             params.CT.hW=0.15;%main vibronic energy considered in eV
             params.CT.sigma=0.001;%gaussian distribution for CT state
-            params.CT.Dmus=10*3.33e-30/1.6e-19;%difference in static dipole moment (10 in DEbye ) then th
+            params.CT.Dmus=10*pc.debye/pc.q;%difference in static dipole moment (10 in DEbye ) then th
             params.CT.numbrestate=2;
             %%%%%%% add this to account for the effect of Hybredisation
             params.Vstar=0.020; % Coupling between S1 and CT in eV
@@ -59,6 +59,7 @@ classdef paramsRec
         end
         function params=updatelaguerre(params,const)
             params.funlaguerre=[];
+            params.funlaguerreS=params.S;   % Huang-Rhys factor the table was computed for
 
             for m=0:1:params.Number_Vibronic_Mode_final
                 for n=0:1:params.Number_Vibronic_Mode_initial
@@ -95,15 +96,12 @@ classdef paramsRec
             else
             StateEnergyspacing=params.Statedistribution(2)-params.Statedistribution(1);
             end
-            try
-                if min(size(params.funlaguerre)==[params.Number_Vibronic_Mode_final+1,params.Number_Vibronic_Mode_initial+1])
-                    
-                else
-                    params=paramsRec.updatelaguerre(params,const);
-                end
-            catch
+            % Recompute the Laguerre table when the vibronic mode numbers or the
+            % Huang-Rhys factor (Li/hW) changed since it was computed
+            if ~isfield(params,'funlaguerre') || ~isfield(params,'funlaguerreS') ...
+                    || params.funlaguerreS~=params.S ...
+                    || ~isequal(size(params.funlaguerre),[params.Number_Vibronic_Mode_final+1,params.Number_Vibronic_Mode_initial+1])
                 params=paramsRec.updatelaguerre(params,const);
-                
             end
             for energy=params.Statedistribution
                 params.Znorm=params.Znorm+exp(-(energy-params.DG0)^2/2/params.sigma^2)*exp(-(energy)/const.T/const.kb)*StateEnergyspacing;
@@ -127,7 +125,7 @@ classdef paramsRec
         end
         
         function y=FC_em(params,const,E,m,n,laguerrecalc)
-            kb=8.6173324e-5;
+            kb=const.kb;
             T=const.T;
             if (n==0)
                 y=exp(-params.S)*power(params.S,m)/factorial(m)*exp(-power(params.DG0-(E+m*params.hW+params.L0),2)/4/abs(params.L0)/kb/T);%*exp(-(n+m)*params.hW/kb/T);
