@@ -55,7 +55,7 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 results = runtests('tests'); assertSuccess(results)
 ```
 
-The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for every pull request and every push to the default branch.
+The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for pull requests and pushes to the default branch that change `.m` files, `parameters/`, `optical_data/` or `resourceFiles/`; they can also be started manually from the Actions tab.
 
 ## Documentation
 

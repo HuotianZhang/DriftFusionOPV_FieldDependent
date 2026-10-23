@@ -1,9 +1,22 @@
 name: MATLAB tests
 
+# Only run when code or input data changes (docs-only changes are skipped)
 on:
   push:
     branches: [DriftFusionOPV_FieldDepdent_2.0]
+    paths:
+      - '**.m'
+      - 'parameters/**'
+      - 'optical_data/**'
+      - 'resourceFiles/**'
+      - '.github/workflows/matlab-tests.yml'
   pull_request:
+    paths:
+      - '**.m'
+      - 'parameters/**'
+      - 'optical_data/**'
+      - 'resourceFiles/**'
+      - '.github/workflows/matlab-tests.yml'
   workflow_dispatch:
 
 jobs:
