@@ -30,7 +30,7 @@ kdisex      = 1e9;     %[1e9,1e12] % Rate Constatn Ex dissociation     % 1 / s
 %mobility    = 5e-4;     % Charge Carrier Mobility           % cm^2 / V / s
 %Generate the deviceparams class
 deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(['parameters\',deviceParameterFile]);
+DP = deviceparams(fullfile('parameters',deviceParameterFile));
 
 
 %experiment parameter
