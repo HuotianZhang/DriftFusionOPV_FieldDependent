@@ -1,0 +1,19 @@
+name: MATLAB tests
+
+on:
+  push:
+    branches: [DriftFusionOPV_FieldDepdent_2.0]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: matlab-actions/setup-matlab@v3
+        with:
+          cache: true
+      - uses: matlab-actions/run-command@v3
+        with:
+          command: results = runtests('tests'); disp(table(results)); assertSuccess(results);

@@ -43,8 +43,19 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 ├── optical_data/                 % n,k data for the transfer-matrix optical model
 ├── resourceFiles/                % AM1.5 spectrum
 ├── results/                      % Saved example outputs (.fig)
+├── tests/                        % Smoke tests (run automatically by GitHub Actions)
 └── docs/                         % Documentation (see below)
 ```
+
+## Testing
+
+`tests/smokeTest.m` checks that the device parameters, the transfer-matrix optical data and `external_model` load and run. Run it from MATLAB:
+
+```matlab
+results = runtests('tests'); assertSuccess(results)
+```
+
+The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for every pull request and every push to the default branch.
 
 ## Documentation
 
