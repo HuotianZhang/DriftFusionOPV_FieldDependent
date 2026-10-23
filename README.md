@@ -63,7 +63,6 @@ The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for 
 |---|---|
 | Parameter list | [`docs/List_of_Parameters.docx`](docs/List_of_Parameters.docx) |
 | `external_model.m` interface | [Quick Start](docs/external_model/EXTERNAL_MODEL_QUICKSTART.md) · [Technical notes](docs/external_model/EXTERNAL_MODEL_REFACTORING.md) · [Changes](docs/external_model/CHANGES_SUMMARY.txt) |
-| Marcus transfer workflow refactoring | [Overview](docs/marcus_refactoring/README_REFACTORING.md) · [Summary](docs/marcus_refactoring/REFACTORING_SUMMARY.md) · [Notes](docs/marcus_refactoring/REFACTORING_NOTES.md) |
 | `pndriftHCT_forMarcus.m` solver | [Index](docs/pndriftHCT_forMarcus/README.md) · [Quick reference](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_quick_reference.md) · [Workflow](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_workflow.md) · [Explanation](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md) |
 | Solver optimizations & testing | [Summary](docs/pndriftHCT_forMarcus/OPTIMIZATION_SUMMARY.md) · [Details](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md) · [Before/after](docs/pndriftHCT_forMarcus/BEFORE_AFTER_COMPARISON.md) · [Testing checklist](docs/pndriftHCT_forMarcus/TESTING_CHECKLIST.md) · [Logical operator bug fix](docs/pndriftHCT_forMarcus/BUGFIX_LOGICAL_OPERATOR.md) |
 
