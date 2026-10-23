@@ -66,7 +66,6 @@ The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for 
 | Marcus transfer workflow refactoring | [Overview](docs/marcus_refactoring/README_REFACTORING.md) · [Summary](docs/marcus_refactoring/REFACTORING_SUMMARY.md) · [Notes](docs/marcus_refactoring/REFACTORING_NOTES.md) |
 | `pndriftHCT_forMarcus.m` solver | [Index](docs/pndriftHCT_forMarcus/README.md) · [Quick reference](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_quick_reference.md) · [Workflow](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_workflow.md) · [Explanation](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md) |
 | Solver optimizations & testing | [Summary](docs/pndriftHCT_forMarcus/OPTIMIZATION_SUMMARY.md) · [Details](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md) · [Before/after](docs/pndriftHCT_forMarcus/BEFORE_AFTER_COMPARISON.md) · [Testing checklist](docs/pndriftHCT_forMarcus/TESTING_CHECKLIST.md) · [Logical operator bug fix](docs/pndriftHCT_forMarcus/BUGFIX_LOGICAL_OPERATOR.md) |
-| Class refactoring analysis (proposals, not yet applied) | [Executive summary](docs/class_refactoring_analysis/ANALYSIS_COMPLETE.md) · [Index](docs/class_refactoring_analysis/DOCUMENTATION_INDEX.md) |
 
 ## Citation
 
