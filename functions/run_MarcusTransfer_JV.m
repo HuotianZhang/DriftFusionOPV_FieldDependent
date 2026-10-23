@@ -44,71 +44,8 @@ else
     Vend = max(VV);
 end
 
-% Calculate field-dependent rate constants with the given parameters
-kLECT = kDis_stark(lambda, RCT, offset);
-kCTLE = kBak_stark(lambda, RCT, offset);
-
-% Get E_values (electric field values) and rate values
-E_values = kLECT(:, 1);
-k_values = kLECT(:, 2);
-k_bak_values = kCTLE(:, 2) * 10;
-
-% Initialize recombination parameters
-Prec = paramsRec;
-
-% Set parameters
-Prec.params.tickness        = 100 * 1e-9;           % m
-Prec.params.Ex.DG0          = E_gap;                % eV
-Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
-Prec.params.Ex.f            = 2.56e-0;
-Prec.params.CT.f            = 2e-4;
-Prec.params.Ex.sigma        = 0.0001;
-Prec.params.CT.sigma        = 0.0001;
-Prec.params.Ex.numbrestate  = 1;
-Prec.params.CT.numbrestate  = 1;
-Prec.params.Ex.L0           = 0.1;
-Prec.params.Ex.Li           = 0.15;
-Prec.params.CT.L0           = 0.10;
-Prec.params.CT.Li           = 0.15;
-Prec.params.RCTE            = 1e-1;
-Prec.params.Excitondesnity  = 8e27;
-Prec.params.Vstar           = 0.000;
-Prec.const.T                = 300;
-Prec                        = paramsRec.calcall(Prec);
-
-% Device parameters
-activelayer = 2;
-NC          = 2e19;
-Kfor        = 2.5e-10;
-kdis        = 5e10;
-kdisex      = k_values(1);
-mobility    = 5e-2;
-
-deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(fullfile('parameters',deviceParameterFile));
-
-DP.light_properties.OM      = 0;
-DP.Time_properties.tpoints  = 100;
-DP.Layers{activelayer}.tp   = Prec.params.tickness * 100;
-
-DP.Layers{2}.krec       = 1e9;
-DP.Layers{2}.krecexc    = 1/lifetime_ex*1e12;
-DP.physical_const.E_values    = E_values;
-DP.physical_const.k_values    = k_values;
-DP.physical_const.k_bak_values = k_bak_values;
-DP.Layers{2}.offset     = offset;
-DP.Layers{2}.RCTE       = Prec.params.RCTE;
-
-DP = DP.generateDeviceparams(NC, activelayer, mobility, kdis, kdisex, Prec, Kfor, 0);
-
-% Vstart and Vend determined from VV input (already set earlier in the function)
-
-DP.Layers{2}.r0_CT  = 0;
-DP.Layers{2}.r0_Ex  = 1;
-DP.Layers{2}.krec   = 1e9;
-DP.Layers{2}.krecexc = 1/lifetime_ex*1e12;
-DP.physical_const.E_values = E_values;
-DP.physical_const.k_values = k_values;
+% Build the device (recombination parameters, Marcus rate tables, layers)
+[DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, RCT, E_gap);
 
 DV2 = device_forMarcus(DP);
 DV2.Prec = Prec;

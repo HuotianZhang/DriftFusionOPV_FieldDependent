@@ -234,9 +234,14 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
         kdis=params.Layers{kk}.kdis*exp(q*E_field*r0_CT/kbT);
 
 
-        offsetLECT=params.Layers{2}.offset;
-        % kforEx=kdisexc.*exp(-offsetLECT/kbT)/params.Layers{2}.RCTE;
-        kforEx=kdisexc*exp(-offsetLECT/kbT)/params.Layers{2}.RCTE*(1-r0_Ex)+interpolated_k_bak*r0_Ex;%from marcus with field
+        % Field-independent CT->LE rate of this layer: detailed balance from its
+        % own offset and RCTE if set, otherwise its kforEx from the parameter file
+        if isfield(params.Layers{kk},'offset') && isfield(params.Layers{kk},'RCTE')
+            kforEx0=kdisexc*exp(-params.Layers{kk}.offset/kbT)/params.Layers{kk}.RCTE;
+        else
+            kforEx0=params.Layers{kk}.kforEx;
+        end
+        kforEx=kforEx0*(1-r0_Ex)+interpolated_k_bak*r0_Ex;%from marcus with field
         %kforEx=params.Layers{kk}.kforEx*(1-r0_Ex)+interpolated_k_bak*r0_Ex;%from marcus with field
         % end
         % kdis=params.Layers{kk}.kdis*exp(q*abs(Vapp-params.Experiment_prop.Vbi)/params.Layers{3}.XR*r0_CT/(kB*T)); %try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)). If r0 = 0, kdis = kdis0.
@@ -342,7 +347,7 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
                 pl = [0;(ul(2)- params.Layers{1}.p0); 0;-ul(4);0;];
                 ql = [1;0;1;0;1;];
                 
-                pr = [(ur(1)-params.Layers{layers}.n0);0;0;-ur(4)+params.Experiment_prop.Vbi-Vapp;0;];
+                pr = [(ur(1)-params.Layers{end}.n0);0;0;-ur(4)+params.Experiment_prop.Vbi-Vapp;0;];
                 
                 qr = [0;1;1;0;1;];
                 

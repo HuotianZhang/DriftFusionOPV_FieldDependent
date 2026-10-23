@@ -257,7 +257,7 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
                 pl = [0;(ul(2)- params.Layers{1}.p0); 0;-ul(4);0;];
                 ql = [1;0;1;0;1;];
                 
-                pr = [(ur(1)-params.Layers{layers}.n0);0;0;-ur(4)+params.Experiment_prop.Vbi-Vapp;0;];
+                pr = [(ur(1)-params.Layers{end}.n0);0;0;-ur(4)+params.Experiment_prop.Vbi-Vapp;0;];
                 
                 qr = [0;1;1;0;1;];
                 
