@@ -45,7 +45,7 @@ function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT)
 
 ### 2. Created `external_model.m`
 
-**File**: `external_model.m` (in repository root)
+**File**: `functions/external_model.m`
 
 **Purpose**: Provides a simplified interface that replaces simple fitting equations (like `Y = k02 * X.^2 + k20`) with physics-based Marcus transfer calculations.
 

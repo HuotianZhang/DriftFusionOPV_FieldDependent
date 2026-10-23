@@ -13,7 +13,7 @@ The `pndriftHCT_forMarcus.m` function has been optimized for better performance 
 ## Documentation Guide
 
 ### For Quick Overview
-- **[OPTIMIZATION_SUMMARY.md](../OPTIMIZATION_SUMMARY.md)** - Complete summary of all changes and testing recommendations
+- **[OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md)** - Complete summary of all changes and testing recommendations
 
 ### For Technical Details
 - **[pndriftHCT_forMarcus_optimizations.md](pndriftHCT_forMarcus_optimizations.md)** - Detailed explanation of each optimization with code examples
@@ -147,11 +147,11 @@ The optimizations scale better with:
 | File | Status | Description |
 |------|--------|-------------|
 | `functions/pndriftHCT_forMarcus.m` | ✏️ Modified | Main optimization |
-| `docs/pndriftHCT_forMarcus_optimizations.md` | ➕ New | Optimization details |
-| `docs/BEFORE_AFTER_COMPARISON.md` | ➕ New | Code comparison |
-| `docs/pndriftHCT_forMarcus_explanation.md` | ✏️ Updated | Added optimization notes |
+| `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md` | ➕ New | Optimization details |
+| `docs/pndriftHCT_forMarcus/BEFORE_AFTER_COMPARISON.md` | ➕ New | Code comparison |
+| `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md` | ✏️ Updated | Added optimization notes |
 | `OPTIMIZATION_SUMMARY.md` | ➕ New | Complete summary |
-| `docs/README_OPTIMIZATION.md` | ➕ New | This file |
+| `docs/pndriftHCT_forMarcus/README_OPTIMIZATION.md` | ➕ New | This file |
 
 ## Questions?
 
@@ -184,8 +184,8 @@ Yes. The git history preserves the original version. You can always checkout the
 - GitHub Copilot (2025)
 
 **Based on the explanation in:**
-- `docs/pndriftHCT_forMarcus_explanation.md`
+- `docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md`
 
 ---
 
-For detailed technical information, see [OPTIMIZATION_SUMMARY.md](../OPTIMIZATION_SUMMARY.md)
+For detailed technical information, see [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md)

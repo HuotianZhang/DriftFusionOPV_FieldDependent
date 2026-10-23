@@ -67,7 +67,7 @@ Optimization of `pndriftHCT_forMarcus.m` for better performance
 | Detailed analysis | **REFACTORING_ANALYSIS.md** |
 | How to fix issues | **IMPLEMENTATION_GUIDE.md** |
 | Workflow refactoring | **README_REFACTORING.md** |
-| Performance optimization | **docs/README_OPTIMIZATION.md** |
+| Performance optimization | **docs/pndriftHCT_forMarcus/README_OPTIMIZATION.md** |
 
 ---
 
@@ -118,7 +118,7 @@ Optimization of `pndriftHCT_forMarcus.m` for better performance
 - `REFACTORING_NOTES.md` - Technical implementation details
 
 ### Performance Docs (Previous)
-- `docs/README_OPTIMIZATION.md` - pndriftHCT_forMarcus optimization
+- `docs/pndriftHCT_forMarcus/README_OPTIMIZATION.md` - pndriftHCT_forMarcus optimization
 
 ### Other Refactoring Docs
 - `EXTERNAL_MODEL_REFACTORING.md` - External model refactoring
@@ -140,7 +140,7 @@ Optimization of `pndriftHCT_forMarcus.m` for better performance
 3. See example_run_MarcusTransfer.m
 
 ### If You Want to Understand Optimizations
-1. Read docs/README_OPTIMIZATION.md
+1. Read docs/pndriftHCT_forMarcus/README_OPTIMIZATION.md
 2. Review the performance improvements
 
 ---
