@@ -175,21 +175,19 @@ classdef dfplot
                 if Rshunt==0
                     Rshunt=1e15;
                 end
-                try
+                plot_name='undefined';
+                if numel(varargin)>=2
                     plot_name=varargin{2};
-                    
-                catch
-                    plot_name='undefined';
-                    
                 end
             end
-                J = dfana.calcJ(sol);
-                Vapp= dfana.calcVapp(sol);
+            J = dfana.calcJ(sol);
+            Vapp= dfana.calcVapp(sol);
+            % Current at the contact plus the shunt current, used for the
+            % plot, Jsc, Voc, FF and the returned curve alike
+            Jtot = J.tot(:,end) + Vapp/Rshunt;
             
             if figureplot==1
                 hold on
-                middlepoint=floor(length(J.tot(1,:))/2);
-                Jtot = J.tot(:,middlepoint) + Vapp/Rshunt;
                 plot(Vapp, Jtot*1000,'DisplayName',plot_name);
                 
                 ylim([-30, 10]);
@@ -198,10 +196,10 @@ classdef dfplot
                 ylabel('Current density [mA/cm^2]');
                 hold off
             end
-            Jsc=-interp1(Vapp,J.tot(:,end),0)*1e3;%in mAcm-2
-            Voc=interp1(J.tot(:,end),Vapp,0);
-            FF=max(-Vapp.*J.tot(:,end)*1e3)/(Voc*Jsc);
-            JJ=J.tot(:,end)*1e3;
+            Jsc=-interp1(Vapp,Jtot,0)*1e3;%in mAcm-2
+            Voc=interp1(Jtot,Vapp,0);
+            FF=max(-Vapp.*Jtot*1e3)/(Voc*Jsc);
+            JJ=Jtot*1e3;
             VV=Vapp;
         end
         function JV(JV, option)

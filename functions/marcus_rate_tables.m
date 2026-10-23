@@ -1,5 +1,5 @@
 function [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, T, RCTE)
-% marcus_rate_tables - Field-dependent LE->CT and CT->LE rate tables for pndriftHCT_forMarcus
+% marcus_rate_tables - Field-dependent LE->CT and CT->LE rate tables for pndriftHCT
 %
 % The back-transfer rate is the Marcus CT->LE rate divided by RCTE, so that
 % at zero field k_bak/k = exp(-offset/kT)/RCTE. This is the same detailed
@@ -17,6 +17,8 @@ function [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, of
 %   E_values     - Electric field (V/m)
 %   k_values     - LE->CT rate (s^-1)
 %   k_bak_values - CT->LE rate (s^-1)
+%
+% Store them in a layer as Layers{kk}.marcus = struct('E',E,'k',k,'k_bak',k_bak,'weight',1).
 %
 % Example:
 %   [E, k, k_bak] = marcus_rate_tables(0.5, 1.5, 0.05, 300, 0.1);

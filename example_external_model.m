@@ -2,8 +2,8 @@
 % This script demonstrates how to use the external_model function
 % which provides a simplified interface to run Marcus transfer J-V simulations
 
-% Add all subdirectories to path
-addpath(genpath(pwd));
+% Add the code folders to the path
+run(fullfile(fileparts(mfilename('fullpath')), 'startup.m')); % add the code folders to the path
 
 %% Example 1: Using external_model with a voltage vector
 fprintf('Example 1: Using external_model with voltage vector\n');

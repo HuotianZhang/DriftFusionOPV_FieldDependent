@@ -28,15 +28,17 @@ classdef deviceparams
                 % the excel spreadsheat.
                 
                 % Physical constants
-                physical_const.kB = 8.6173324e-5;    % Boltzmann constant [eV K^-1]
+                pc = physconst();
+                physical_const.kB = pc.kB_eV;        % Boltzmann constant [eV K^-1]
                 physical_const.T = 300;              % Temperature [K]
-                physical_const.epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
+                physical_const.epp0 = pc.eps0*1e-2/pc.q;   % vacuum permittivity in e^2 eV^-1 cm^-1
                 physical_const.q = 1;                % in e
-                physical_const.e = 1.61917e-19;      % Charge of an electron in Coulombs for current calculations
+                physical_const.e = pc.q;             % Charge of an electron in Coulombs for current calculations
                 
                 % Solver options
                 solveropt.AbsTol=1e-6;
                 solveropt.RelTol=1e-3;
+                solveropt.verbose=true;              % progress messages and pdepe statistics
                 % Define geometry of the system (m=0 1D, m=1 cylindrical polar coordinates,
                 % m=2 spherical polar coordinates).
                 solveropt.m = 0;
@@ -54,6 +56,7 @@ classdef deviceparams
                 % 1 = Beer-Lamber (Requires pre calculation using Igor code & gen profile in base workspace)
                 % 2 = Transfer Matrix (Stanford)
                 light_properties.OM  =0;
+                light_properties.TM_material = 'PBDB-T_ITIC'; % optical_data/<name>_nk.txt of the active layer (OM = 2)
                 light_properties.Genstrength  =2.5e21;%for uniform generation in cm-3
                 
                 % Pulse of  light properties
@@ -88,6 +91,9 @@ classdef deviceparams
                 External_prop.sp_r=1e8;%right hole extraction/surface recombination coefficient in cm s^-1
                 DP.physical_const = physical_const;
                 DP.External_prop=External_prop;
+                if ~isfile(Excelfilename) && isfile(repo_path(Excelfilename))
+                    Excelfilename=repo_path(Excelfilename);   % path relative to the repository root
+                end
                 DP=readlayers(DP,Excelfilename);
                 DP.solveropt = solveropt;
                 DP.pulse_properties = pulse_properties;
@@ -163,18 +169,45 @@ classdef deviceparams
             delimiterIn = ',';
             headerlinesIn = 0;
             data = importdata(filename,delimiterIn,headerlinesIn);
+            % Column of each layer property in the parameter spreadsheet
+            col=struct('epp',1, ...
+                'EA',2, ...
+                'IP',3, ...
+                'PhiCV',4, ...
+                'PhiAV',5, ...
+                'N0C',6, ...
+                'N0V',7, ...
+                'muee',8, ...
+                'mupp',9, ...
+                'tp',17, ...
+                'pp',18, ...
+                'tinterL',19, ...
+                'epointsL',20, ...
+                'XiL',21, ...
+                'XipL',22, ...
+                'tinterR',23, ...
+                'epointsR',24, ...
+                'XiR',25, ...
+                'XipR',26, ...
+                'int',29, ...
+                'kdisexc',30, ...
+                'kdis',31, ...
+                'kfor',32, ...
+                'krec',33, ...
+                'kforEx',34, ...
+                'krecexc',35);
             DP.layers_num=length(data.data(:,1));
-            epp0 = 552434;        % e^2 eV^-1 cm^-1 -Checked (02-11-15)
+            epp0 = DP.physical_const.epp0;        % e^2 eV^-1 cm^-1
             for ii=1:1:DP.layers_num
-                DP.Layers{ii}.epp=data.data(ii,1)*epp0; % Dielectric constant
-                DP.Layers{ii}.EA = data.data(ii,2);        % Conduction band energy
-                DP.Layers{ii}.IP = data.data(ii,3);     % Valence band energy
-                DP.Layers{ii}.PhiCV = data.data(ii,4);   % n doping
-                DP.Layers{ii}.PhiAV = data.data(ii,5);     % p doping
-                DP.Layers{ii}.N0C=data.data(ii,6);      % effective Density Of States at the conduction band
-                DP.Layers{ii}.N0V=data.data(ii,7);      % effective Density Of States at the Valence band
-                DP.Layers{ii}.muee=data.data(ii,8);        %mobility
-                DP.Layers{ii}.mupp=data.data(ii,9);        %mobility
+                DP.Layers{ii}.epp=data.data(ii,col.epp)*epp0; % Dielectric constant
+                DP.Layers{ii}.EA = data.data(ii,col.EA);        % Conduction band energy
+                DP.Layers{ii}.IP = data.data(ii,col.IP);     % Valence band energy
+                DP.Layers{ii}.PhiCV = data.data(ii,col.PhiCV);   % n doping
+                DP.Layers{ii}.PhiAV = data.data(ii,col.PhiAV);     % p doping
+                DP.Layers{ii}.N0C=data.data(ii,col.N0C);      % effective Density Of States at the conduction band
+                DP.Layers{ii}.N0V=data.data(ii,col.N0V);      % effective Density Of States at the Valence band
+                DP.Layers{ii}.muee=data.data(ii,col.muee);        %mobility
+                DP.Layers{ii}.mupp=data.data(ii,col.mupp);        %mobility
 %                 DP.Layers{ii}.krad  = data.data(ii,10); % [cm3 s-1] Bulk Radiative Recombination coefficient [nominally 1e-10]
 %                 DP.Layers{ii}.taun = data.data(ii,11);   % [s] SRH time constant for electrons
 %                 DP.Layers{ii}.taup = data.data(ii,12);
@@ -182,25 +215,25 @@ classdef deviceparams
 %                 DP.Layers{ii}.Eth = data.data(ii,14);
 %                 DP.Layers{ii}.NTA = data.data(ii,15);
 %                 DP.Layers{ii}.NTD = data.data(ii,16);
-                DP.Layers{ii}.tp =data.data(ii,17)*1e-7;   %  DP.layers thickness in cm
-                DP.Layers{ii}.pp =data.data(ii,18)*1e-7;       % spacing for the layer in the middle in cm 
-                DP.Layers{ii}.tinterL = data.data(ii,19)*1e-7;      % Interfacial region thickness
-                DP.Layers{ii}.epointsL = data.data(ii,20)*1e-7;        % spacing for the region at the interface with the left layer
-                DP.Layers{ii}.XiL =data.data(ii,21)*1e-7;            % thin region to replace the abrupt change in the layer properties with a linear change
-                DP.Layers{ii}.XipL =data.data(ii,22)*1e-7;               % No. of points for electrode [for l
-                DP.Layers{ii}.tinterR = data.data(ii,23)*1e-7;      % Interfacial region thickness
-                DP.Layers{ii}.epointsR = data.data(ii,24)*1e-7;         % No. of points for electrode [for log mesh]
-                DP.Layers{ii}.XiR =data.data(ii,25)*1e-7;            % Interfacial region thickness Heterojunction
-                DP.Layers{ii}.XipR =data.data(ii,26)*1e-7; 
+                DP.Layers{ii}.tp =data.data(ii,col.tp)*1e-7;   %  DP.layers thickness in cm
+                DP.Layers{ii}.pp =data.data(ii,col.pp)*1e-7;       % spacing for the layer in the middle in cm 
+                DP.Layers{ii}.tinterL = data.data(ii,col.tinterL)*1e-7;      % Interfacial region thickness
+                DP.Layers{ii}.epointsL = data.data(ii,col.epointsL)*1e-7;        % spacing for the region at the interface with the left layer
+                DP.Layers{ii}.XiL =data.data(ii,col.XiL)*1e-7;            % thin region to replace the abrupt change in the layer properties with a linear change
+                DP.Layers{ii}.XipL =data.data(ii,col.XipL)*1e-7;               % No. of points for electrode [for l
+                DP.Layers{ii}.tinterR = data.data(ii,col.tinterR)*1e-7;      % Interfacial region thickness
+                DP.Layers{ii}.epointsR = data.data(ii,col.epointsR)*1e-7;         % No. of points for electrode [for log mesh]
+                DP.Layers{ii}.XiR =data.data(ii,col.XiR)*1e-7;            % Interfacial region thickness Heterojunction
+                DP.Layers{ii}.XipR =data.data(ii,col.XipR)*1e-7; 
 %                 DP.Layers{ii}.wr =data.data(ii,27)*1e-7;%ND/(ND+NA)*sqrt(2*eppp/q*Vbi*(1/ND));%50e-7;  %((-ti*NA*q) + ((NA^0.5)*(q^0.5)*(((ti^2)*NA*q) + (4*eppi*Vbi))^0.5))/(2*NA*q);
 %                 DP.Layers{ii}.wl =data.data(ii,28)*1e-7;%ND/(ND+NA)*sqrt(2*eppp/q*Vbi*(1/ND));%50e-7;  %((-ti*NA*q) + ((NA^0.5)*(q^0.5)*(((ti^2)*NA*q) + (4*eppi*Vbi))^0.5))/(2*NA*q);
-                DP.Layers{ii}.int=data.data(ii,29);
-                DP.Layers{ii}.kdisexc=data.data(ii,30);
-                DP.Layers{ii}.kdis=data.data(ii,31);
-                DP.Layers{ii}.kfor=data.data(ii,32);
-                DP.Layers{ii}.krec=data.data(ii,33);
-                DP.Layers{ii}.kforEx=data.data(ii,34);
-                DP.Layers{ii}.krecexc=data.data(ii,35);
+                DP.Layers{ii}.int=data.data(ii,col.int);
+                DP.Layers{ii}.kdisexc=data.data(ii,col.kdisexc);
+                DP.Layers{ii}.kdis=data.data(ii,col.kdis);
+                DP.Layers{ii}.kfor=data.data(ii,col.kfor);
+                DP.Layers{ii}.krec=data.data(ii,col.krec);
+                DP.Layers{ii}.kforEx=data.data(ii,col.kforEx);
+                DP.Layers{ii}.krecexc=data.data(ii,col.krecexc);
             end
         end
         function DP=UpdateLayers(DP)
@@ -299,16 +332,20 @@ classdef deviceparams
         end
         function DP=Timemesh(DP)           
             % Time mesh
+            stats='off';
+            if ~isfield(DP.solveropt,'verbose') || DP.solveropt.verbose
+                stats='on';
+            end
             if DP.Time_properties.tmesh_type == 1
                 DP.Time_properties.tmesh =  [linspace(0,DP.Time_properties.tmax,DP.Time_properties.tpoints)];
                 DP.Time_properties.tmesh= abs(DP.Time_properties.tmesh);
-                DP.solveropt.options = odeset('MaxOrder',5,'MaxStep',DP.Time_properties.t0*100,'InitialStep',DP.Time_properties.t0*10,'RelTol',DP.solveropt.RelTol,'AbsTol',DP.solveropt.AbsTol,'NonNegative',[1 1 1 0 1],'Stats','on') ;
+                DP.solveropt.options = odeset('MaxOrder',5,'MaxStep',DP.Time_properties.t0*100,'InitialStep',DP.Time_properties.t0*10,'RelTol',DP.solveropt.RelTol,'AbsTol',DP.solveropt.AbsTol,'Stats',stats) ;
                 
             elseif DP.Time_properties.tmesh_type == 2
                 if DP.pulse_properties.pulseon == 1 && DP.pulse_properties.tstart>DP.Time_properties.t0 && DP.pulse_properties.pulselen<DP.Time_properties.tmax
                     % Tweak solver options - limit maximum time step size during integration.
                     
-                    DP.solveropt.options = odeset('MaxOrder',5,'MaxStep',DP.Time_properties.t0*1000,'InitialStep',DP.Time_properties.t0,'RelTol',DP.solveropt.RelTol,'AbsTol',DP.solveropt.AbsTol,'NonNegative',[1 1 1 0 1],'Stats','on') ;
+                    DP.solveropt.options = odeset('MaxOrder',5,'MaxStep',DP.Time_properties.t0*1000,'InitialStep',DP.Time_properties.t0,'RelTol',DP.solveropt.RelTol,'AbsTol',DP.solveropt.AbsTol,'Stats',stats) ;
                     
                     DP.Time_properties.tmesh = [logspace(log10(DP.Time_properties.t0),log10(DP.pulse_properties.tstart),DP.Time_properties.tpoints/20) - DP.Time_properties.t0...
                         ,logspace(log10(DP.pulse_properties.tstart+DP.Time_properties.t0/100),log10(2*DP.pulse_properties.tstart+DP.Time_properties.t0/100),DP.Time_properties.tpoints*9.5/20)-DP.Time_properties.t0,...
@@ -318,28 +355,10 @@ classdef deviceparams
                     DP.Time_properties.tmesh = logspace(log10(DP.Time_properties.t0),log10(DP.Time_properties.tmax),DP.Time_properties.tpoints) - DP.Time_properties.t0;
                     % Tweak solver options - limit maximum time step size during integration.
                     
-                    DP.solveropt.options = odeset('MaxOrder',5,'MaxStep',DP.Time_properties.t0*10,'InitialStep',DP.Time_properties.t0,'RelTol',DP.solveropt.RelTol,'AbsTol',DP.solveropt.AbsTol,'NonNegative',[1 1 1 0 1],'Stats','on') ;
+                    DP.solveropt.options = odeset('MaxOrder',5,'MaxStep',DP.Time_properties.t0*10,'InitialStep',DP.Time_properties.t0,'RelTol',DP.solveropt.RelTol,'AbsTol',DP.solveropt.AbsTol,'Stats',stats) ;
                 end
             end
 
-        end
-        function DP=generationProfile(DP)
-        % Generation
-
-            if DP.light_properties.OM == 1 && DP.light_properties.Int ~= 0 %OM = Optical Model
-                % Beer-Lambert - Currently requires solution in the workspace
-                Gx1S = evalin('base', 'BL1Sun');                    % 1 Sun generation profile
-                Gx1S = Gx1S';
-                GxLas = evalin('base', 'BL638');
-                GxLas = GxLas';
-
-            elseif DP.light_properties.OM == 2 && DP.light_properties.Int ~= 0
-                % Call Transfer Matrix code: [Gx1, Gx2] = TMPC1(layers, thicknesses, activeLayer1, activeLayer2)
-                [Gx1S, GxLas] = TMPC1({'SiO2' 'P3HT' 'SiO2'}, [pp pii pn], 2, 2);
-                Gx1S = Gx1S';
-                GxLas = GxLas';
-
-            end
         end
         function DP=update_boundary_charge_densities(DP)
             DP.External_prop.nleft = DP.Layers{1}.N0C*exp((DP.External_prop.leftboundary_fermi_energy-DP.Layers{1}.EA)/(DP.physical_const.kB*DP.physical_const.T));     % Background density electrons in etl/n-type
@@ -349,11 +368,20 @@ classdef deviceparams
             
         end
         function DP=generateDeviceparams(DP,NC,activelayer,mobility,kdis,kdisex,Prec,varargin)
-            %additional input are either Beff, the bimolecular reformation
-            %rate constant, or the lifetime of the free charge carrier
-            %either varargin={Beff,0} or {Tq,1}
-            %             DP=pnParamsHCT;
-            %input parameters
+            % generateDeviceparams(DP,NC,activelayer,mobility,kdis,kdisex,Prec,value,mode,...)
+            % sets the rate constants of the active layer from Prec. The
+            % mode (varargin{2}) selects what varargin{1} is:
+            %   0: kfor, CS->CT formation rate constant (cm^3 s^-1)
+            %   1: Tq, free carrier lifetime (s)
+            %   2: ECS, charge-separated state energy (eV)
+            %   3: kfor; kdis from a Marcus rate function,
+            %      varargin = {kfor,3,Hab_CT_dis,marcusrate,L0_CT_dis}
+            %   4: ECS; kdis and kdisex from a Marcus rate function,
+            %      varargin = {ECS,4,Hab_CT_dis,L0_CT_dis,marcusrate,Hab_LE_dis,L0_LE_dis}
+            if numel(varargin)<2
+                error('deviceparams:generateDeviceparams', ...
+                    'Provide the value and the mode, e.g. generateDeviceparams(...,Prec,kfor,0); see help for modes 0-4');
+            end
             DP.physical_const.T=Prec.const.T;
             tickness=DP.Layers{activelayer}.tp;%in cm
             kbT=DP.physical_const.kB*DP.physical_const.T;%in eV
@@ -367,103 +395,126 @@ classdef deviceparams
             %%%%%%%%%%%%estimated value
             %             ECS=Vocexp./idealityfactor+kbT*log(Beff_ref*(Tq1exp_ref./Tq1exp).^2)-kbT*log(idealityfactor.*Jsc./NC^2/tickness/q/1e3);%in eV
             %in cm-3s-1
-            try
-                switch  varargin{2}
-                    case 0
+            switch  varargin{2}
+                case 0
 %                         Beff=varargin{1};
-                        kfor=varargin{1};
+                    kfor=varargin{1};
+                    ni=sqrt(CT0*kdis/kfor);
+                    ECS=2*kbT*log(NC/ni);
+                case 1
+                    Tq1exp=varargin{1};
+                    Beff_ref=1e-11;%in cm-3s-1
+                    Tq1exp_ref=6e-7; %in s
+                    Beff=Beff_ref.*(Tq1exp_ref./Tq1exp).^2;%%in cm-3s-1
+                    kfor=Beff.*kdis./krecCT;%(mobility+mobility)/DP.Layers{2}.epp;%;kdis=krecCT*kfor/Beff;
+                    ni=sqrt(CT0*kdis/kfor);
+                    ECS=2*kbT*log(NC/ni);
+                case 2
+                    ECS=varargin{1};
+                    ni=NC*exp(-ECS/2/kbT);
+                    kfor=(CT0*kdis/ni^2);
+                case 3
+                    kfor=varargin{1};
+                    Hab_CT_dis=varargin{3};
+                    marcusrate=varargin{4};
+                    L0_CT_dis=varargin{5};
+                    offset_CTCS=0.3;
+                    kdis=marcusrate(Hab_CT_dis,L0_CT_dis,offset_CTCS);
+                    kdis0=kdis*10;
+                    iter=0;
+                    while abs(kdis0-kdis)>1e-12*abs(kdis) && iter<1000
+                        iter=iter+1;
+                        kdis0=kdis;
                         ni=sqrt(CT0*kdis/kfor);
                         ECS=2*kbT*log(NC/ni);
-                    case 1
-                        Tq1exp=varargin{1};
-                        Beff_ref=1e-11;%in cm-3s-1
-                        Tq1exp_ref=6e-7; %in s
-                        Beff=Beff_ref.*(Tq1exp_ref./Tq1exp).^2;%%in cm-3s-1
-                        kfor=Beff.*kdis./krecCT;%(mobility+mobility)/DP.Layers{2}.epp;%;kdis=krecCT*kfor/Beff;
-                        ni=sqrt(CT0*kdis/kfor);
-                        ECS=2*kbT*log(NC/ni);
-                    case 2
-                        ECS=varargin{1};
-                        ni=NC*exp(-ECS/2/kbT);
-                        kfor=(CT0*kdis/ni^2);
-                    case 3
-                        kfor=varargin{1};
-                        Hab_CT_dis=varargin{3};
-                        marcusrate=varargin{4};
-                        L0_CT_dis=varargin{5};
-                        offset_CTCS=0.3;
-                        kdis=marcusrate(Hab_CT_dis,L0_CT_dis,offset_CTCS);
-                        kdis0=kdis*10;
-                        while kdis0~=kdis
-                            kdis0=kdis;
-                            ni=sqrt(CT0*kdis/kfor);
-                            ECS=2*kbT*log(NC/ni);
-                            offset_CTCS=Prec.params.CT.DG0-ECS;
-                            kdis=marcusrate(Hab_CT_dis,L0_CT_dis,offset_CTCS);
-                        end
-                    case 4
-                        ECS=varargin{1};
-                        Hab_CT_dis=varargin{3};
-                        marcusrate=varargin{5};
-                        L0_CT_dis=varargin{4};
-                        Hab_LE_dis=varargin{6};
-                        L0_LE_dis=varargin{7};
                         offset_CTCS=Prec.params.CT.DG0-ECS;
                         kdis=marcusrate(Hab_CT_dis,L0_CT_dis,offset_CTCS);
-                        kdisex=marcusrate(Hab_LE_dis,L0_LE_dis,offsetLECT);
-                        ni=NC*exp(-ECS/2/kbT);
-                        kfor=(CT0*kdis/ni^2);
-                              
-                end
-                
-              
-                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                kforEx=kdisex.*exp(-offsetLECT/kbT)/Prec.params.RCTE;
-                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                DP.Layers{activelayer}.krec=krecCT;%1e9;%krecm(jj);
-                DP.Layers{activelayer}.kdis=kdis;%3.4e10;
-                DP.Layers{activelayer}.kfor=kfor;%3.3e-9;%kbieff(kk)*p.layer{1, 2}.kdis/p.layer{2}.krec;
-                DP.Layers{activelayer}.kdisexc=kdisex;
-                DP.Layers{activelayer}.muee=mobility;%mueM(mm);
-                DP.Layers{activelayer}.mupp=mobility;%mueM(mm);
-                DP.Layers{activelayer}.krecexc=krecex;
-                DP.Layers{activelayer}.kforEx=kforEx;
-                DP.Layers{activelayer}.r0=0; %R0 for field dependence is 1 nm
-                for ii=1:DP.layers_num
-                    DP.Layers{ii}.IP=-ECS;
-                    DP.Layers{ii}.N0C=NC;
-                    DP.Layers{ii}.N0V=NC;
-                end
-
-                DP.Experiment_prop.discretetrap=0;
-                DP=UpdateLayers(DP);
-                DP = Xgrid(DP);
-                DP=update_time(DP);
-                DP=Timemesh(DP);
-                DP.results.J0 = CT0*tickness*q*1e3 * (Prec.params.CT.results.knr + (Prec.params.Ex.results.knr) * exp(-offsetLECT/kbT) / Prec.params.RCTE) + Prec.results.J0rad;
-                DP.results.DVnr = -kbT*log(Prec.results.J0rad / DP.results.J0);
-                DP.results.Voc = Prec.results.Vocrad - DP.results.DVnr;
-                DP.results.Vocrad=Prec.results.Vocrad;
-                DP.light_properties.Genstrength  =Prec.results.Jscrad/tickness/q/1e3;%for uniform generation in cm-3 one sun equivalent
-                if DP.light_properties.OM == 2
-                    DP=Transfer_matrix_generation_profile(DP);
-                end
-                DP.External_prop.leftboundary_fermi_energy=DP.Layers{1}.Phi;
-                DP.External_prop.Rightboundary_fermi_energy=DP.Layers{end}.Phi;
-                DP=update_boundary_charge_densities(DP);
-            catch ME
-                disp(" check that you provided varargin={Beff,0} or {Tq,1}");
-
-                rethrow(ME)
-                
+                    end
+                case 4
+                    ECS=varargin{1};
+                    Hab_CT_dis=varargin{3};
+                    marcusrate=varargin{5};
+                    L0_CT_dis=varargin{4};
+                    Hab_LE_dis=varargin{6};
+                    L0_LE_dis=varargin{7};
+                    offset_CTCS=Prec.params.CT.DG0-ECS;
+                    kdis=marcusrate(Hab_CT_dis,L0_CT_dis,offset_CTCS);
+                    kdisex=marcusrate(Hab_LE_dis,L0_LE_dis,offsetLECT);
+                    ni=NC*exp(-ECS/2/kbT);
+                    kfor=(CT0*kdis/ni^2);
+                          
+                otherwise
+                    error('deviceparams:generateDeviceparams', 'Unknown mode %g; use 0-4 (see help)', varargin{2});
+            end
+            
+          
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            kforEx=kdisex.*exp(-offsetLECT/kbT)/Prec.params.RCTE;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            DP.Layers{activelayer}.krec=krecCT;%1e9;%krecm(jj);
+            DP.Layers{activelayer}.kdis=kdis;%3.4e10;
+            DP.Layers{activelayer}.kfor=kfor;%3.3e-9;%kbieff(kk)*p.layer{1, 2}.kdis/p.layer{2}.krec;
+            DP.Layers{activelayer}.kdisexc=kdisex;
+            DP.Layers{activelayer}.muee=mobility;%mueM(mm);
+            DP.Layers{activelayer}.mupp=mobility;%mueM(mm);
+            DP.Layers{activelayer}.krecexc=krecex;
+            DP.Layers{activelayer}.kforEx=kforEx;
+            DP.Layers{activelayer}.r0=0; %R0 for field dependence is 1 nm
+            for ii=1:DP.layers_num
+                DP.Layers{ii}.IP=-ECS;
+                DP.Layers{ii}.N0C=NC;
+                DP.Layers{ii}.N0V=NC;
             end
 
+            DP.Experiment_prop.discretetrap=0;
+            DP=UpdateLayers(DP);
+            DP = Xgrid(DP);
+            DP=update_time(DP);
+            DP=Timemesh(DP);
+            DP=recombinationResults(DP,Prec,activelayer);
+            DP.light_properties.Genstrength  =Prec.results.Jscrad/tickness/q/1e3;%for uniform generation in cm-3 one sun equivalent
+            if DP.light_properties.OM == 2
+                DP=Transfer_matrix_generation_profile(DP);
+            end
+            DP.External_prop.leftboundary_fermi_energy=DP.Layers{1}.Phi;
+            DP.External_prop.Rightboundary_fermi_energy=DP.Layers{end}.Phi;
+            DP=update_boundary_charge_densities(DP);
+
+        end
+        function DP=recombinationResults(DP,Prec,activelayer)
+            % Dark saturation current J0 (mA/cm^2), non-radiative voltage
+            % loss DVnr and Voc estimate from the active layer's current CT
+            % and exciton decay rates (krec, krecexc are total decay rates;
+            % the radiative parts come from Prec). Call it again after
+            % changing krec or krecexc.
+            L=DP.Layers{activelayer};
+            kbT=DP.physical_const.kB*DP.physical_const.T;
+            q=DP.physical_const.e;
+            offsetLECT=Prec.params.Ex.DG0-Prec.params.CT.DG0;
+            RCTE=Prec.params.RCTE;
+            krCT=Prec.params.CT.results.krTot;
+            krEx=Prec.params.Ex.results.krTot;
+            CT0=Prec.results.R0rad/q/1e3/(krCT+krEx*exp(-offsetLECT/kbT)/RCTE);
+            knrCT=L.krec-krCT;
+            knrEx=L.krecexc-krEx;
+            if knrCT<0 || knrEx<0
+                warning('deviceparams:recombinationResults', ...
+                    'krec or krecexc is below the radiative rate from Prec; J0 is not physical');
+            end
+            DP.results.J0 = CT0*L.tp*q*1e3*(knrCT+knrEx*exp(-offsetLECT/kbT)/RCTE)+Prec.results.J0rad;
+            DP.results.DVnr = -kbT*log(Prec.results.J0rad/DP.results.J0);
+            DP.results.Voc = Prec.results.Vocrad-DP.results.DVnr;
+            DP.results.Vocrad = Prec.results.Vocrad;
         end
         function DP=Transfer_matrix_generation_profile(DP)
-            %need to check that the name of the Nk file corresponds to the
-            %name of the device here
+            % Transfer-matrix generation profile in the photoactive layer
+            % (the layer with int ~= 0), whose n,k data are read from
+            % optical_data/<light_properties.TM_material>_nk.txt
             name='PBDB-T_ITIC';
-            activelayer=2;
+            if isfield(DP.light_properties,'TM_material')
+                name=DP.light_properties.TM_material;
+            end
+            activelayer=find(cellfun(@(L) L.int~=0, DP.Layers),1);
             Lightintensity=DP.light_properties.Int;
             tickness=DP.Layers{activelayer}.tp*1e7;%in nm
             [Xpos,Gx]=TransferMatrix_generation(tickness,name,Lightintensity);

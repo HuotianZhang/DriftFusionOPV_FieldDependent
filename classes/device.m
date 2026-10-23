@@ -52,13 +52,8 @@ classdef device
                 p=Transfer_matrix_generation_profile(p);
             end
             %%%%%%%%%%%%%%%%%%%%%%
-            disp('Getting JSC')
-            try
-                DV.sol_Jsc==0;
-                DV.sol_Jsc=pndriftHCT(DV.sol_eq,p);
-            catch
-                DV.sol_Jsc=[DV.sol_Jsc,pndriftHCT(DV.sol_eq,p)];
-            end
+            device.say(p,'Getting JSC')
+            DV.sol_Jsc=device.appendsol(DV.sol_Jsc,pndriftHCT(DV.sol_eq,p));
         end
         function DV=runsolJV(DV,Gen,Vstart,Vend)
             
@@ -76,13 +71,8 @@ classdef device
                 p.Experiment_prop.V_fun_arg(3) = p.Time_properties.tmax;
                 p=update_time(p);
   
-                disp('Doing JV')
-                try
-                    DV.sol_JV==0;
-                    DV.sol_JV=pndriftHCT(DV.sol_eq,p);
-                catch
-                    DV.sol_JV=[DV.sol_JV,pndriftHCT(DV.sol_eq,p)];
-                end
+                device.say(p,'Doing JV')
+                DV.sol_JV=device.appendsol(DV.sol_JV,pndriftHCT(DV.sol_eq,p));
             else
                 for sol_Jsc = DV.sol_Jsc
                     if Gen==sol_Jsc.params.light_properties.Int
@@ -96,15 +86,10 @@ classdef device
                         p.Experiment_prop.V_fun_arg(2) = Vend;
                         p.Experiment_prop.V_fun_arg(3) = p.Time_properties.tmax;
                         p=update_time(p);
-                        disp('Doing JV')
-                        try
-                            DV.sol_JV==0;
-                            DV.sol_JV=pndriftHCT(sol_Jsc,p);
-                        catch
-                            DV.sol_JV=[DV.sol_JV,pndriftHCT(sol_Jsc,p)];
-                        end
+                        device.say(p,'Doing JV')
+                        DV.sol_JV=device.appendsol(DV.sol_JV,pndriftHCT(sol_Jsc,p));
                     else
-                        disp('get the Jsc first')
+                        warning('device:missingSolution','get the Jsc first')
                     end
                 end
             end
@@ -119,18 +104,12 @@ classdef device
             p.Experiment_prop.BC=4;
             p.Time_properties.tmax=1e-5;
             p=update_time(p);
-            disp('Getting equilibrium for Symmetric model 1 ')
+            device.say(p,'Getting equilibrium for Symmetric model 1 ')
             ssol_eq=pndriftHCT(ssol_eq,p);
             p.Time_properties.tmax=1e-3;
             p=update_time(p);
-            disp('Getting equilibrium for Symmetric model 2 ')
-            try
-                DV.ssol_Voc==0;
-                DV.ssol_Voc=pndriftHCT(ssol_eq,p);
-                
-            catch
-                DV.ssol_Voc=[DV.ssol_Voc,pndriftHCT(ssol_eq,p)];
-            end
+            device.say(p,'Getting equilibrium for Symmetric model 2 ')
+            DV.ssol_Voc=device.appendsol(DV.ssol_Voc,pndriftHCT(ssol_eq,p));
             % % % % % % % %
         end
         function DV=runsolTPV(DV,Gen)
@@ -144,16 +123,10 @@ classdef device
                     p.pulse_properties.pulseint =2*Gen;
                     p.Time_properties.tpoints = 1000;
                     p=update_time(p);
-                    disp('Doing TPV ')
-                    try
-                        DV.ssol_TPV==0;
-                        DV.ssol_TPV=pndriftHCT(ssol_Voc,p);
-                    catch
-                        DV.ssol_TPV=[DV.ssol_TPV,pndriftHCT(ssol_Voc,p)];
-                        
-                    end
+                    device.say(p,'Doing TPV ')
+                    DV.ssol_TPV=device.appendsol(DV.ssol_TPV,pndriftHCT(ssol_Voc,p));
                 else
-                    disp('get the Voc first')
+                    warning('device:missingSolution','get the Voc first')
                     
                 end
                 %         reslts{kk}.TPV.Voc=ssol_T.Voc;
@@ -174,17 +147,25 @@ classdef device
                     p.pulse_properties.pulseint =500;
                     p.Time_properties.tpoints = 1000;
                     p=update_time(p);
-                    disp('Doing TAS ')
-                    try
-                        DV.ssol_TAS==0;
-                        DV.ssol_TAS=pndriftHCT(ssol_Voc,p);
-                    catch
-                        DV.ssol_TAS=[DV.ssol_TAS,pndriftHCT(ssol_Voc,p)];
-                        
-                    end
+                    device.say(p,'Doing TAS ')
+                    DV.ssol_TAS=device.appendsol(DV.ssol_TAS,pndriftHCT(ssol_Voc,p));
                 else
-                    disp('get the Voc first')
+                    warning('device:missingSolution','get the Voc first')
                 end
+            end
+        end
+        function say(p,msg)
+            % Progress message, unless p.solveropt.verbose is false
+            if ~isfield(p.solveropt,'verbose') || p.solveropt.verbose
+                disp(msg)
+            end
+        end
+        function sols=appendsol(sols,sol)
+            % Store a new solution, or append it to the earlier ones
+            if isequal(sols,0) || isempty(sols)
+                sols=sol;
+            else
+                sols=[sols,sol];
             end
         end
         function DV=current_transient(DV,Gen,V,Vstep,pulse_length)
@@ -205,7 +186,7 @@ classdef device
                     p.Experiment_prop.V_fun_arg(4) = pulse_length;%length of pulse in us
                     p.Experiment_prop.V_fun_arg(5) = 1e-8;
                     p=update_time(p);
-                    disp('Doing simulation')
+                    device.say(p,'Doing simulation')
                     finalpoint=find(dfana.calcVapp(sol_JV)>V,1);
                     vapp=dfana.calcVapp(sol_JV);
                     if  max(vapp>V)==1
@@ -214,19 +195,14 @@ classdef device
                     p.Experiment_prop.V_fun_arg(2) = Vstep+vapp(finalpoint);
                     p=update_time(p);
                     sol_JV.sol=sol_JV.sol(finalpoint,:,:);
-                    try
-                        DV.sol_Vpulse==0;
-                        DV.sol_Vpulse=pndriftHCT(sol_JV,p);
-                    catch
-                        DV.sol_Vpulse=[DV.sol_Vpulse,pndriftHCT(sol_JV,p)];
-                    end
+                    DV.sol_Vpulse=device.appendsol(DV.sol_Vpulse,pndriftHCT(sol_JV,p));
                     Success=1;
                     break; 
                     end
                 end
             end
             if  Success==0
-                 disp('get the JV at the right light intensity first and up to the right voltage')
+                 warning('device:missingSolution','get the JV at the right light intensity first and up to the right voltage')
             end
         end
     end

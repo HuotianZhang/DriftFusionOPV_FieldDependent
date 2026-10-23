@@ -59,9 +59,10 @@ end
 t = thicknesses;
 
 % Constants
-h = 6.62606957e-34; 	% Js Planck's constant
-c = 2.99792458e8;	% m/s speed of light
-q = 1.60217657e-19;	% C electric charge
+pc = physconst();
+h = pc.h; 	% Js Planck's constant
+c = pc.c;	% m/s speed of light
+q = pc.q;	% C electric charge
 
 % Calculate Incoherent power transmission through substrate
 % See Griffiths "Intro to Electrodynamics 3rd Ed. Eq. 9.86 & 9.87
@@ -112,7 +113,7 @@ end
 % Plots generation rate as a function of position in the device and
 % calculates Jsc 
     % Load in 1sun AM 1.5 solar spectrum in mW/cm2nm
-    AM15_data=xlsread('AM15.xls');
+    AM15_data=xlsread(repo_path('resourceFiles','AM15.xls'));
     AM15=interp1(AM15_data(:,1), AM15_data(:,2), lambda, 'linear', 'extrap');
     AM15_intensity=AM15*lightinesity;
     % Energy dissipation mW/cm3-nm at each position and wavelength (JAP Vol
@@ -167,7 +168,7 @@ function ntotal = LoadRefrIndex(folder,name,wavelengths)
 
 %Data in IndRefr, Column names in IndRefr_names
 % [IndRefr,IndRefr_names]=xlsread('Index_of_Refraction_library.xls');
-nkfile=fopen(fullfile(pwd,folder,[name '_nk.txt']));
+nkfile=fopen(repo_path(folder,[name '_nk.txt']));
 nkarray=textscan(nkfile,'%f %f %f','HeaderLines', 0);
 fclose(nkfile);
 % Load index of refraction data in spread sheet, will crash if misspelled

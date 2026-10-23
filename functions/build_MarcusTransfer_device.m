@@ -1,4 +1,4 @@
-function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, RCT, E_gap)
+function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, RCT, E_gap, varargin)
 % build_MarcusTransfer_device - Device parameters for the Marcus transfer J-V simulation
 %
 % Builds the recombination parameters (Prec) and the device parameters (DP)
@@ -11,18 +11,42 @@ function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, R
 %   RCT         - Charge transfer distance (nm)
 %   E_gap       - Energy gap (eV)
 %
+% Optional name-value arguments (defaults in brackets):
+%   'thickness' - Active layer thickness, nm [100]
+%   'NC'        - Effective density of states, cm^-3 [2e19]
+%   'mobility'  - Electron and hole mobility, cm^2/(V s) [5e-2]
+%   'kdis'      - CT dissociation rate constant, s^-1 [5e10]
+%   'kfor'      - CS->CT formation rate constant, cm^3/s [2.5e-10]
+%   'krec'      - CT decay rate, s^-1 [1e9]
+%   'RCTE'      - Ratio of CT to LE density of states [0.1]
+%   'T'         - Temperature, K [300]
+%   'verbose'   - Print progress and solver statistics [true]
+%
 % Outputs:
-%   DP   - deviceparams object, ready for device_forMarcus
+%   DP   - deviceparams object, ready for device
 %   Prec - paramsRec object
 %
 % Example:
 %   [DP, Prec] = build_MarcusTransfer_device(0.05, 10, 0.5, 1.5, 1.8);
 
+ip = inputParser;
+ip.addParameter('thickness', 100, @(x) isscalar(x) && x > 0);
+ip.addParameter('NC', 2e19, @(x) isscalar(x) && x > 0);
+ip.addParameter('mobility', 5e-2, @(x) isscalar(x) && x > 0);
+ip.addParameter('kdis', 5e10, @(x) isscalar(x) && x > 0);
+ip.addParameter('kfor', 2.5e-10, @(x) isscalar(x) && x > 0);
+ip.addParameter('krec', 1e9, @(x) isscalar(x) && x > 0);
+ip.addParameter('RCTE', 1e-1, @(x) isscalar(x) && x > 0);
+ip.addParameter('T', 300, @(x) isscalar(x) && x > 0);
+ip.addParameter('verbose', true, @(x) islogical(x) || isnumeric(x));
+ip.parse(varargin{:});
+opt = ip.Results;
+
 % Initialize recombination parameters
 Prec = paramsRec;
 
 % Set parameters
-Prec.params.tickness        = 100 * 1e-9;           % m
+Prec.params.tickness        = opt.thickness * 1e-9; % m
 Prec.params.Ex.DG0          = E_gap;                % eV
 Prec.params.CT.DG0          = Prec.params.Ex.DG0 - offset;
 Prec.params.Ex.f            = 2.56e-0;
@@ -35,10 +59,10 @@ Prec.params.Ex.L0           = 0.1;
 Prec.params.Ex.Li           = 0.15;
 Prec.params.CT.L0           = 0.10;
 Prec.params.CT.Li           = 0.15;
-Prec.params.RCTE            = 1e-1;
+Prec.params.RCTE            = opt.RCTE;
 Prec.params.Excitondesnity  = 8e27;
 Prec.params.Vstar           = 0.000;
-Prec.const.T                = 300;
+Prec.const.T                = opt.T;
 Prec                        = paramsRec.calcall(Prec);
 
 % Field-dependent rate constants, using the same temperature and RCTE as
@@ -47,31 +71,30 @@ Prec                        = paramsRec.calcall(Prec);
 
 % Device parameters
 activelayer = 2;
-NC          = 2e19;
-Kfor        = 2.5e-10;
-kdis        = 5e10;
+NC          = opt.NC;
+Kfor        = opt.kfor;
+kdis        = opt.kdis;
 kdisex      = k_values(1);
-mobility    = 5e-2;
+mobility    = opt.mobility;
 
-deviceParameterFile = 'DeviceParameters_Default.xlsx';
-DP = deviceparams(fullfile('parameters',deviceParameterFile));
+DP = deviceparams(repo_path('parameters', 'DeviceParameters_Default.xlsx'));
+DP.solveropt.verbose        = logical(opt.verbose);
 
 DP.light_properties.OM      = 0;
 DP.Time_properties.tpoints  = 100;
 DP.Layers{activelayer}.tp   = Prec.params.tickness * 100;
 
-DP.physical_const.E_values     = E_values;
-DP.physical_const.k_values     = k_values;
-DP.physical_const.k_bak_values = k_bak_values;
-DP.Layers{activelayer}.offset  = offset;
-DP.Layers{activelayer}.RCTE    = Prec.params.RCTE;
-
 DP = DP.generateDeviceparams(NC, activelayer, mobility, kdis, kdisex, Prec, Kfor, 0);
 
-% generateDeviceparams sets krec and krecexc from Prec; override them here
+% Field-dependent LE<->CT rates from the Marcus tables (weight 1: the
+% constant kdisexc/kforEx are not used in this layer)
+DP.Layers{activelayer}.marcus = struct('E', E_values, 'k', k_values, 'k_bak', k_bak_values, 'weight', 1);
 DP.Layers{activelayer}.r0_CT   = 0;
-DP.Layers{activelayer}.r0_Ex   = 1;
-DP.Layers{activelayer}.krec    = 1e9;
+
+% generateDeviceparams sets krec and krecexc from Prec; override them here
+% and update J0/Voc in DP.results to match
+DP.Layers{activelayer}.krec    = opt.krec;
 DP.Layers{activelayer}.krecexc = 1/lifetime_ex*1e12;
+DP = DP.recombinationResults(Prec, activelayer);
 
 end

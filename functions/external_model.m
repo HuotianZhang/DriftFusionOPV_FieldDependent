@@ -1,4 +1,4 @@
-function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
+function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, varargin)
 % external_model - External model for J-V simulation using Marcus transfer
 %
 % This function provides a simple interface to run Marcus transfer J-V simulations.
@@ -21,6 +21,10 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 %                 Example: 1.8 eV
 %   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
 %                 Example: 0.001 kOhms·cm²
+%   Name-value  - Optional device parameters ('thickness', 'NC', 'mobility',
+%                 'kdis', 'kfor', 'krec', 'RCTE', 'T'), see
+%                 build_MarcusTransfer_device. Output is quiet unless
+%                 'verbose', true is given.
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²) corresponding to the voltage array VV
@@ -45,7 +49,10 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 
 % Call run_MarcusTransfer_JV with the provided parameters
 % The function will determine Vstart and Vend from the VV range
-[JJ_output, VV_output] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
+if ~any(strcmpi(varargin(1:2:end), 'verbose'))
+    varargin = [varargin, {'verbose', false}];   % quiet by default, e.g. inside a fit
+end
+[JJ_output, VV_output] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, varargin{:});
 
 % Always interpolate onto the input grid: run_MarcusTransfer_JV only uses the
 % range of VV, and the series resistance correction shifts every voltage

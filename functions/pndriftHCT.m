@@ -1,74 +1,69 @@
 function solstruct = pndriftHCT(varargin)
-localtime = cputime;
-% Look up pdepe solver
-% Requires v2struct toolbox for unpacking parameters structure
-% IMPORTANT! Currently uses parameters from pnParamsH - all variables must be
-% declared in pnDrift (line 52)
-
-% A routine to test solving the diffusion and drift equations using the
-% matlab pde solver. This version defines electrons as u1 and holes as u2,
-% and ions as u3. u4 is the electric potential.
+% Solves the drift-diffusion equations with MATLAB's pdepe.
+%
+%   solstruct = pndriftHCT(sol0, params)
+%
+% sol0 is a previous solution used as the initial condition, or a struct
+% with sol0.sol = 0 to start from the flat background conditions in params
+% (a deviceparams object). Variables:
+% u1    electrons
+% u2    holes
+% u3    charge transfer states
+% u4    electric potential
+% u5    exciton
+%
+% Field dependence of the rate constants (per layer, all optional):
+%   Layers{kk}.r0_CT   CT dissociation, kdis*exp(q*F*r0_CT/kT), r0_CT in cm
+%   Layers{kk}.r0_Ex   exciton dissociation, kdisexc*exp(q*F*r0_Ex/kT), r0_Ex in cm
+%   Layers{kk}.marcus  Marcus LE<->CT rate tables (see marcus_rate_tables):
+%                      fields E (V/m), k, k_bak (s^-1) and weight (0..1);
+%                      kdisexc and kforEx are weight*table + (1-weight)*constant
+% with F the field magnitude |dV/dx| in V/cm.
 %
 % Piers Barnes last modified (09/01/2016)
 % Phil Calado last modified (07/07/2016)
+% Huotian Zhang: Marcus field-dependent LE<->CT rates (2023-2025)
 
-% This version allows a previous solution to be used as the input
-% conditions. If there is no input argument asssume default flat background
-% condtions. If there is one argument, assume it is the previous solution
-% to be used as the initial conditions. If there are two input arguments,
-% assume that first are the x points from the previous solution, and the
-% second is the previous solution.
-
-% set(0,'DefaultLineLinewidth',2);
-% set(0,'DefaultAxesFontSize',24);
-% set(0,'DefaultFigurePosition', [600, 400, 640, 400]);
-
-if isempty(varargin)
-    params = pnParamsHCT;                         % Calls Function EParams and stores in sturcture 'params'
+if nargin ~= 2
+    error('pndriftHCT:nargin', 'Call pndriftHCT(sol0, params); use struct(''sol'',0) as sol0 to start from the background conditions');
+end
+if isequal(varargin{1}.sol, 0)
+    params = varargin{2};
     xmesh = params.Xgrid_properties;
-    
-elseif length(varargin) == 1
-    % Call input parameters function
-    icsol = varargin{1, 1}.sol;
-    xmesh = varargin{1, 1}.x;
-    params = pnParamsHCT;                         % Calls Function EParams and stores in sturcture 'params'
-elseif length(varargin) == 2
-    if varargin{1, 1}.sol == 0
-        params = varargin{2};
-        xmesh = params.Xgrid_properties;
-    else
-        icsol = varargin{1, 1}.sol;
-        xmesh = varargin{1, 1}.x;
-        params = varargin{2};
-    end
-    
+else
+    icsol = varargin{1}.sol;
+    xmesh = varargin{1}.x;
+    params = varargin{2};
 end
 
-% define solution mesh either logarithmically or linearly spaced points
-% Define the x points to give the initial
-
 icx = xmesh;
-% genspace = linspace(0,tn+tp,pii);
-
-
 xmax=max(xmesh);
 %% Voltage function
 Vapp_fun = fun_gen(params.Experiment_prop.V_fun_type);
 
+%% Marcus rate interpolants, built once per call
+marcus_w = zeros(1, params.layers_num);
+marcus_k = cell(1, params.layers_num);
+marcus_kbak = cell(1, params.layers_num);
+for ii = 1:params.layers_num
+    if isfield(params.Layers{ii}, 'r0_Ex') && params.Layers{ii}.r0_Ex > 1e-4
+        error('pndriftHCT:r0_Ex', ['Layer %d: r0_Ex = %g, but r0_Ex is a distance in cm. ' ...
+            'For Marcus LE<->CT rates set Layers{%d}.marcus (see build_MarcusTransfer_device).'], ii, params.Layers{ii}.r0_Ex, ii);
+    end
+    if isfield(params.Layers{ii}, 'marcus') && params.Layers{ii}.marcus.weight > 0
+        M = params.Layers{ii}.marcus;
+        marcus_w(ii) = M.weight;
+        marcus_k{ii} = griddedInterpolant(M.E(:), M.k(:), 'linear', 'linear');
+        marcus_kbak{ii} = griddedInterpolant(M.E(:), M.k_bak(:), 'linear', 'linear');
+    end
+end
+
 % Call solver - inputs with '@' are function handles to the subfunctions
 % below for the: equation, initial conditions, boundary conditions
 sol = pdepe(params.solveropt.m,@pdex4pde,@pdex4ic,@pdex4bc,xmesh,params.Time_properties.tmesh,params.solveropt.options);
-
-% assignin('base', 'sol', sol);
 SizesSol=size(sol);
 solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstruct.x = xmesh; solstruct.t = params.Time_properties.tmesh(1:SizesSol(1));solstruct.sol = sol;
-% solstruct = DriftanalyseCT(solstruct);
-% solstruct.timespent=timespent;
-% assignin('base', 'sol', solstruct);
-% if params.Experiment_prop.figson==1
-%     driftplotCT(solstruct);
-% end
-% % --------------------------------------------------------------------------
+
 % Set up partial differential equation (pdepe) (see MATLAB pdepe help for details of c, f, and s)
     function [c,f,s] = pdex4pde(x,t,u,DuDx)
         sim=0;
@@ -156,29 +151,31 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
                 0;];
             
         end
-        if isfield(params.Layers{kk},'r0_Ex')
-            r0_Ex=params.Layers{kk}.r0_Ex;%start with r0=3nm
-            kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
-        else
-            r0_Ex=0;
-            
+        L=params.Layers{kk};
+        E_field=abs(DuDx(4));   % V/cm
+        r0_CT=0;
+        r0_Ex=0;
+        if isfield(L,'r0_CT')
+            r0_CT=L.r0_CT;
         end
-        if isfield(params.Layers{kk},'r0_CT')
-            r0_CT=params.Layers{kk}.r0_CT;%start with r0=3nm
-        else
-            r0_CT=0;
+        if isfield(L,'r0_Ex')
+            r0_Ex=L.r0_Ex;
         end
-        kdis=params.Layers{kk}.kdis*exp(q*abs(DuDx(4))*r0_CT/(kB*T));
-        kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
-        s = [kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)); 
-            kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%start with r0=3nm
-            kdisexc*(u(5))+params.Layers{kk}.kfor*((u(1)*u(2)))-(kdis*u(3)+params.Layers{kk}.krec*(u(3)-params.Layers{kk}.CT0))-params.Layers{kk}.kforEx*(u(3));
-            (q/params.Layers{kk}.epp)*(-u(1)+u(2)-params.Layers{kk}.NA+params.Layers{kk}.ND);
-            g-kdisexc*(u(5))-params.Layers{kk}.krecexc*(u(5)-params.Layers{kk}.Ex0)+params.Layers{kk}.kforEx*(u(3));];%abs
-%         if x>1.5e-5
-%             pause(0.1)
-%         end 
-        
+        kdis=L.kdis*exp(q*E_field*r0_CT/(kB*T));
+        kdisexc=L.kdisexc*exp(q*E_field*r0_Ex/(kB*T));
+        kforEx=L.kforEx;
+        w=marcus_w(kk);
+        if w>0
+            E_Vm=E_field/1e-2;
+            kdisexc=kdisexc*(1-w)+marcus_k{kk}(E_Vm)*w;
+            kforEx=kforEx*(1-w)+marcus_kbak{kk}(E_Vm)*w;
+        end
+        s = [kdis*u(3)- L.kfor*((u(1)*u(2)));
+            kdis*u(3)- L.kfor*((u(1)*u(2)));
+            kdisexc*(u(5))+L.kfor*((u(1)*u(2)))-(kdis*u(3)+L.krec*(u(3)-L.CT0))-kforEx*(u(3));
+            (q/L.epp)*(-u(1)+u(2)-L.NA+L.ND);
+            g-kdisexc*(u(5))-L.krecexc*(u(5)-L.Ex0)+kforEx*(u(3));];
+
         if params.Experiment_prop.equilibrium==1
         c = [0
             0

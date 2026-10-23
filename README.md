@@ -6,10 +6,7 @@ DriftFusion code developed by Mohammed Azzouzi as part of his PhD Thesis at Impe
 
 ### Setup
 
-1. Install the Symbolic Math Toolbox
-2. Set the MATLAB working directory to the repository root and run `startup.m` to add all folders to the path
-
-> All scripts load files with paths relative to the repository root (`parameters/`, `optical_data/`, ...), so always run them with the repository root as the current folder.
+Run `startup.m` (in the repository root) to add the code folders to the MATLAB path. Data files are located relative to the repository root, so the scripts work from any current folder. No toolboxes are needed beyond base MATLAB (`pdepe` is part of it).
 
 ### Basic Tutorial
 
@@ -24,6 +21,8 @@ DriftFusion code developed by Mohammed Azzouzi as part of his PhD Thesis at Impe
 ```matlab
 % Simple interface: J-V curve for a given voltage vector
 JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
+% Optional device parameters, e.g. for fitting
+JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, 'thickness', 120, 'mobility', 1e-3);
 ```
 
 - `example_external_model.m` – usage of `external_model`
@@ -32,23 +31,27 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 ## Repository Structure
 
 ```
-├── startup.m                     % Adds all folders to the MATLAB path
+├── startup.m                     % Adds the code folders to the MATLAB path
 ├── Example_workflow.m            % Basic tutorial
 ├── example_external_model.m      % external_model example
 ├── example_run_MarcusTransfer.m  % run_MarcusTransfer_JV example
 ├── classes/                      % Core classes (deviceparams, paramsRec, device, dfana, dfplot, ...)
-├── functions/                    % Solvers and helpers (pndriftHCT_forMarcus, external_model, kDis_stark, ...)
+├── functions/                    % Solver and helpers (pndriftHCT, external_model, marcus_rate_tables, ...)
 ├── scripts/                      % Research / analysis scripts (incl. legacy MarcusTransfer_JV_0620_334.m)
 ├── parameters/                   % Device parameter files (.xlsx)
 ├── optical_data/                 % n,k data for the transfer-matrix optical model
 ├── resourceFiles/                % AM1.5 spectrum
-├── tests/                        % Smoke tests (run automatically by GitHub Actions)
+├── tests/                        % Tests (run automatically by GitHub Actions)
 └── docs/                         % Documentation (see below)
 ```
 
 ## Testing
 
-`tests/smokeTest.m` checks that the device parameters, the transfer-matrix optical data and `external_model` load and run. `tests/physicsTest.m` checks detailed balance between the Marcus forward/back rates and the device parameters, that `generateDeviceparams` writes to the requested active layer, that boundary condition `BC = 1` runs, and the series-resistance interpolation in `external_model`. Run them from MATLAB:
+- `tests/smokeTest.m`: device parameters, transfer-matrix optical data and `external_model` load and run.
+- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
+- `tests/simulationTest.m`: J-V simulations of four Marcus devices and the `Example_workflow` device, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime and field dependence).
+
+Run them from MATLAB:
 
 ```matlab
 results = runtests('tests'); assertSuccess(results)
@@ -62,7 +65,7 @@ The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for 
 |---|---|
 | Parameter list | [`docs/List_of_Parameters.docx`](docs/List_of_Parameters.docx) |
 | `external_model.m` interface | [Quick Start](docs/external_model/EXTERNAL_MODEL_QUICKSTART.md) |
-| `pndriftHCT_forMarcus.m` solver | [Quick reference](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_quick_reference.md) · [Explanation](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md) |
+| Drift-diffusion solver, field-dependent and Marcus rates, workflow | [`docs/solver.md`](docs/solver.md) |
 
 ## Citation
 
