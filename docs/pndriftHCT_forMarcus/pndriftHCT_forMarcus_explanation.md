@@ -3,7 +3,6 @@
 ## Documentation Navigation
 
 - **[Quick Reference Guide](pndriftHCT_forMarcus_quick_reference.md)** - Fast lookup for syntax, equations, and parameters
-- **[Workflow Diagrams](pndriftHCT_forMarcus_workflow.md)** - Visual flow charts and data flow diagrams
 - **This Document** - Complete detailed explanation
 
 ---
