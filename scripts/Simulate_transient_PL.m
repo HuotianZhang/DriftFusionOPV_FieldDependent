@@ -1,4 +1,4 @@
-addpath(genpath(pwd)); % add folders to path
+run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup.m')); % add the code folders to the path
 
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
 offset                      = 0.25;                  % eV    % energy difference between the excited state and the CT state

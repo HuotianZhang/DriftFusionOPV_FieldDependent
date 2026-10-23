@@ -1,4 +1,4 @@
-function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
+function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, varargin)
 % run_MarcusTransfer_JV - Run Marcus transfer J-V simulation
 %
 % This function performs a drift-diffusion simulation with Marcus transfer 
@@ -22,6 +22,9 @@ function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, 
 %                 Example: 1.8 eV
 %   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
 %                 Example: 0.001 kOhms·cm²
+%   Name-value  - Optional device parameters passed to build_MarcusTransfer_device
+%                 ('thickness', 'NC', 'mobility', 'kdis', 'kfor', 'krec',
+%                 'RCTE', 'T', 'verbose')
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²)
@@ -45,15 +48,15 @@ else
 end
 
 % Build the device (recombination parameters, Marcus rate tables, layers)
-[DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, RCT, E_gap);
+[DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, RCT, E_gap, varargin{:});
 
-DV2 = device_forMarcus(DP);
+DV2 = device(DP);
 DV2.Prec = Prec;
 
 % Run simulations
 Gen = 1;  % 1 sun
-DV2 = device_forMarcus.runsolJsc(DV2, Gen);
-DV2 = device_forMarcus.runsolJV(DV2, Gen, Vstart, Vend);
+DV2 = device.runsolJsc(DV2, Gen);
+DV2 = device.runsolJV(DV2, Gen, Vstart, Vend);
 
 % Extract JV data without plotting
 [~, ~, ~, JJ, VV] = dfplot.JV_new(DV2.sol_JV, 0);

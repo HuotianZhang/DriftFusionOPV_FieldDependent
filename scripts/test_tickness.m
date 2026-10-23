@@ -32,12 +32,12 @@ Kfor=1e-11*exp(-Kfor_list_activation(1)/temp/Prec.const.kb)/exp(-Kfor_list_activ
     krecCT=Prec.params.CT.results.knr;krecex=Prec.params.Ex.results.knr;
     Voc=Prec.results.Vocrad-Prec.results.Dvnr;
     %% in this part we generate a device with a certain number of properties
-    %the default properties are set in pnParamsHCT or in the excel file p3hTPCBM.xlsx
+    %the default layer properties are set in the excel file p3hTPCBM.xlsx
     
     NC=2e19;activelayer=2;Kfor=1e-11;%V in V, K in S-1, NC in Cm-3, Jsc in mA cm-2,
     mobility=3e-4;kdis=5e10;kdisex=1e11;% Tq1 in s,mobility in Cm2V-1s-1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    DP=pnParamsHCT;
+    DP=deviceparams(fullfile('parameters','DeviceParameters_p3hTPCBM.xlsx'));
     
     DP.light_properties.OM=2;%to consider the transfer matrix generation profile
     DP.Time_properties.tpoints=100;

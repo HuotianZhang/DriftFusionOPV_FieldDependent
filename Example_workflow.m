@@ -5,7 +5,7 @@
 
 %% SET PARAMETERS and make Device
 % Set and adjust the Recombination Parameters
-addpath(genpath(pwd)); % add folders to path
+run(fullfile(fileparts(mfilename('fullpath')), 'startup.m')); % add the code folders to the path
 
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
 offset                      = 0.55;                  % eV    % energy difference between the excited state and the CT state
@@ -42,11 +42,7 @@ kdis        = 1e10;     % Rate Constant CT dissociation     % 1 / s
 kdisex      = 1e11;     % Rate Constatn Ex dissociation     % 1 / s
 mobility    = 5e-4;     % Charge Carrier Mobility           % cm^2 / V / s
 
-deviceParameterFile = uigetfile(fullfile('parameters','DeviceParameters_Default.xlsx'));
-if isequal(deviceParameterFile,0)
-    deviceParameterFile = 'DeviceParameters_Default.xlsx';
-end
-%deviceParameterFile = 'DeviceParameters_Default.xlsx';
+deviceParameterFile = 'DeviceParameters_Default.xlsx';   % or another file in parameters/
 DP = deviceparams(fullfile('parameters',deviceParameterFile));
 
 DP.light_properties.OM      = 0; %to consider the transfer matrix generation profile

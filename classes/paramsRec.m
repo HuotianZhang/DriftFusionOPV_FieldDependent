@@ -15,7 +15,7 @@ classdef paramsRec
             const.Edistribution=0.5:0.005:3;%the energy distribution for the absorption spectra%need to be linearly spaced
             const.c=300e6;%speed of light in vaccum in ms-1
             const.eps0=4*pi*8.85e-12*6.242e+18;%vaccum permetivity in eV.m-1*4pi
-            data = load('spectrum.mat'); % in ./Data
+            data = load(repo_path('resourceFiles','spectrum.mat'));
             const.solflux(:,1) = data.E;
             const.solflux(:,2) = data.photonFlux;% photonFlux has units mA/cm^2/eV 
             % phflux = interp1( data.E,photonFlux,Energy);
@@ -63,10 +63,25 @@ classdef paramsRec
             for m=0:1:params.Number_Vibronic_Mode_final
                 for n=0:1:params.Number_Vibronic_Mode_initial
 
-                    params.funlaguerre(m+1,n+1) =  laguerreL(n,(m-n),params.S);
+                    params.funlaguerre(m+1,n+1) =  paramsRec.laguerre(n,(m-n),params.S);
                 end
             end
         end 
+        function y=laguerre(n,a,x)
+            % Generalized Laguerre polynomial L_n^(a)(x) from the three-term
+            % recurrence (same definition as laguerreL, valid for negative a)
+            yprev=1;
+            y=1+a-x;
+            if n==0
+                y=yprev;
+                return
+            end
+            for k=1:n-1
+                ynext=((2*k+1+a-x)*y-(k+a)*yprev)/(k+1);
+                yprev=y;
+                y=ynext;
+            end
+        end
         function params=updatestate(params,const)
             hbarEV=const.h/const.e/2/pi	;
             

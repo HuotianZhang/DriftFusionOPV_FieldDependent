@@ -34,11 +34,12 @@ p=update_time(p);
 p.Time_properties.tmax = 1e-9;
 p.Time_properties.t0 = p.Time_properties.tmax/1e3;
 p=Timemesh(p);
+verbose = ~isfield(p.solveropt,'verbose') || p.solveropt.verbose;
 % Run with initial solution
 tic
-disp('first solution')
+if verbose, disp('first solution'), end
 sol = pndriftHCT (sol,p);
-toc
+if verbose, toc, end
 tic
 p.Experiment_prop.equilibrium=0;
 p.Experiment_prop.BC=2;
@@ -47,7 +48,7 @@ p.solveropt.RelTol=1e-3;
 p.Time_properties.tmax = 1e-3;
 p.Time_properties.t0 = p.Time_properties.tmax/1e3;
 p=Timemesh(p);
-disp('second solution')
+if verbose, disp('second solution'), end
 p.Experiment_prop.mobset=1;
 p.Time_properties.tmax = 1e-6;
 p.Time_properties.t0 = p.Time_properties.tmax/1e3;
@@ -55,6 +56,6 @@ sol_eq = pndriftHCT(sol, p);
 p=UpdateLayers(p);
 sol_eq = pndriftHCT(sol_eq, p);
 y=sol_eq;
-toc
+if verbose, toc, end
 
 end

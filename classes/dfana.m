@@ -43,12 +43,15 @@ classdef dfana
                 end
                 
                 for name=fieldnames(par.Layers{ii})'
-                    if isfield(dev,name)
-                         eval([ 'dev.' char(name) '=dev.' char(name) '+ par.Layers{ii}.' char(name) '*BM ;']);
-                    else   
-                        eval([ 'dev.' char(name) '= par.Layers{ii}.' char(name) '*BM ;']);
+                    value=par.Layers{ii}.(char(name));
+                    if ~((isnumeric(value) || islogical(value)) && isscalar(value))
+                        continue    % e.g. the Marcus rate tables
                     end
-                    
+                    if isfield(dev,char(name))
+                        dev.(char(name))=dev.(char(name))+value*BM;
+                    else
+                        dev.(char(name))=value*BM;
+                    end
                 end
             end
             
@@ -72,12 +75,15 @@ classdef dfana
                 end
                 
                 for name=fieldnames(par.Layers{ii})'
-                    if isfield(dev,name)
-                         eval([ 'dev.' char(name) '=dev.' char(name) '+ par.Layers{ii}.' char(name) '*BM ;']);
-                    else   
-                        eval([ 'dev.' char(name) '= par.Layers{ii}.' char(name) '*BM ;']);
+                    value=par.Layers{ii}.(char(name));
+                    if ~((isnumeric(value) || islogical(value)) && isscalar(value))
+                        continue    % e.g. the Marcus rate tables
                     end
-                    
+                    if isfield(dev,char(name))
+                        dev.(char(name))=dev.(char(name))+value*BM;
+                    else
+                        dev.(char(name))=value*BM;
+                    end
                 end
             end
             

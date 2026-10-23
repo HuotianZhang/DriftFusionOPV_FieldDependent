@@ -41,6 +41,7 @@ function [VV_corrected, JJ_corrected] = apply_series_resistance(VV_ideal, JJ_ide
     end
     
     % Ensure column vectors for consistent processing
+    input_is_row = isrow(VV_ideal);
     VV_ideal = VV_ideal(:);
     JJ_ideal = JJ_ideal(:);
     
@@ -54,16 +55,9 @@ function [VV_corrected, JJ_corrected] = apply_series_resistance(VV_ideal, JJ_ide
     JJ_corrected = JJ_ideal;
     
     % Ensure output vectors have same orientation as input
-    if size(VV_ideal, 1) == 1  % Input was row vector
+    if input_is_row
         VV_corrected = VV_corrected.';
         JJ_corrected = JJ_corrected.';
-    end
-    
-    % Optional: Display information about the correction
-    if Rs > 0
-        voltage_drop_range = [min(JJ_ideal * Rs), max(JJ_ideal * Rs)];
-        fprintf('Series resistance correction applied: Rs = %.4f kΩ·cm²\n', Rs);
-        fprintf('Voltage drop range: [%.3f, %.3f] V\n', voltage_drop_range(1), voltage_drop_range(2));
     end
     
 end

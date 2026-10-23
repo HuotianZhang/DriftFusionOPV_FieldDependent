@@ -2,8 +2,8 @@
 % This script demonstrates how to use the refactored run_MarcusTransfer_JV function
 % which replaces the workflow in MarcusTransfer_JV_0620_334.m
 
-% Add all subdirectories to path
-addpath(genpath(pwd));
+% Add the code folders to the path
+run(fullfile(fileparts(mfilename('fullpath')), 'startup.m')); % add the code folders to the path
 
 % Define input parameters
 VV = 0.8;         % Voltage endpoint (will simulate from 0 to 1.2 V)
