@@ -42,7 +42,6 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 ├── parameters/                   % Device parameter files (.xlsx)
 ├── optical_data/                 % n,k data for the transfer-matrix optical model
 ├── resourceFiles/                % AM1.5 spectrum
-├── results/                      % Saved example outputs (.fig)
 ├── tests/                        % Smoke tests (run automatically by GitHub Actions)
 └── docs/                         % Documentation (see below)
 ```
