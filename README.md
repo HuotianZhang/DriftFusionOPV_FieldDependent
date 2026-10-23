@@ -49,7 +49,7 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 
 ## Testing
 
-`tests/smokeTest.m` checks that the device parameters, the transfer-matrix optical data and `external_model` load and run. Run it from MATLAB:
+`tests/smokeTest.m` checks that the device parameters, the transfer-matrix optical data and `external_model` load and run. `tests/physicsTest.m` checks detailed balance between the Marcus forward/back rates and the device parameters, that `generateDeviceparams` writes to the requested active layer, that boundary condition `BC = 1` runs, and the series-resistance interpolation in `external_model`. Run them from MATLAB:
 
 ```matlab
 results = runtests('tests'); assertSuccess(results)

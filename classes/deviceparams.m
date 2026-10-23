@@ -420,27 +420,20 @@ classdef deviceparams
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 kforEx=kdisex.*exp(-offsetLECT/kbT)/Prec.params.RCTE;
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                DP.Layers{2}.krec=krecCT;%1e9;%krecm(jj);
-                DP.Layers{2}.kdis=kdis;%3.4e10;
-                DP.Layers{2}.kfor=kfor;%3.3e-9;%kbieff(kk)*p.layer{1, 2}.kdis/p.layer{2}.krec;
-                DP.Layers{2}.kdisexc=kdisex;
-                DP.Layers{2}.muee=mobility;%mueM(mm);
-                DP.Layers{2}.mupp=mobility;%mueM(mm);
-                DP.Layers{2}.IP=-ECS;
-                DP.Layers{1}.IP=-ECS;
-                DP.Layers{3}.IP=-ECS;
-                DP.Layers{2}.krecexc=krecex;
-                DP.Layers{2}.kforEx=kforEx;
-                DP.Layers{2}.N0V=NC;
-                DP.Layers{1}.N0V=NC;
-                DP.Layers{3}.N0V=NC;
-                DP.Layers{2}.N0C=NC;
-                DP.Layers{1}.N0C=NC;
-                DP.Layers{3}.N0C=NC;
-                DP.Layers{2}.N0V=NC;
-                DP.Layers{1}.N0V=NC;
-                DP.Layers{3}.N0V=NC;
-                DP.Layers{2}.r0=0; %R0 for field dependence is 1 nm
+                DP.Layers{activelayer}.krec=krecCT;%1e9;%krecm(jj);
+                DP.Layers{activelayer}.kdis=kdis;%3.4e10;
+                DP.Layers{activelayer}.kfor=kfor;%3.3e-9;%kbieff(kk)*p.layer{1, 2}.kdis/p.layer{2}.krec;
+                DP.Layers{activelayer}.kdisexc=kdisex;
+                DP.Layers{activelayer}.muee=mobility;%mueM(mm);
+                DP.Layers{activelayer}.mupp=mobility;%mueM(mm);
+                DP.Layers{activelayer}.krecexc=krecex;
+                DP.Layers{activelayer}.kforEx=kforEx;
+                DP.Layers{activelayer}.r0=0; %R0 for field dependence is 1 nm
+                for ii=1:DP.layers_num
+                    DP.Layers{ii}.IP=-ECS;
+                    DP.Layers{ii}.N0C=NC;
+                    DP.Layers{ii}.N0V=NC;
+                end
 
                 DP.Experiment_prop.discretetrap=0;
                 DP=UpdateLayers(DP);

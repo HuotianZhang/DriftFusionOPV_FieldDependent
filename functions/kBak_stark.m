@@ -1,10 +1,12 @@
-function kCTLE = kBak_stark(lambda, RCT, offset)
+function kCTLE = kBak_stark(lambda, RCT, offset, T)
 % kBak_stark - Calculate back electron transfer rates using Marcus theory with Stark effect
 %
 % Inputs:
 %   lambda  - Reorganization energy (eV)
 %   RCT     - Charge transfer distance (nm)
 %   offset  - Energy offset between excited state and CT state (eV)
+%   T       - Temperature (K), optional (default 298). Pass the device
+%             temperature so that forward/back rates obey detailed balance.
 %
 % Returns:
 %   kCTLE - Matrix where first column is electric field (V/m) and second column is rates (s^-1)
@@ -13,7 +15,9 @@ function kCTLE = kBak_stark(lambda, RCT, offset)
 %   kCTLE = kBak_stark(0.5, 1.5, 0.05);
 
 Hab = 0.01;       % Electronic coupling matrix element (eV)
-T = 298;          % Temperature (K)
+if nargin < 4
+    T = 298;      % Temperature (K)
+end
 
 % Define the range of electric field values
 F_values = 0:1e5:5e7; %V/m

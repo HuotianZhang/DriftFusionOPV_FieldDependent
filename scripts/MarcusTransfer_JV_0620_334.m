@@ -29,15 +29,6 @@ fprintf('The current loop is: %d\n', ii); % Display as integer
 offset = 0.05*ii-0.05;  % eV    % energy difference between the excited state and the CT state
 fprintf('The offset is: %.2f\n', offset);
 
-% Calculate field-dependent rate constants for this offset
-kLECT = kDis_stark(lambda, RCT, offset);
-kCTLE = kBak_stark(lambda, RCT, offset);
-
-% Extract E_values and rate values
-E_values = kLECT(:, 1);
-k_values = kLECT(:, 2);
-k_bak_values = kCTLE(:, 2)*10;
-
 Prec                        = paramsRec;                    % initiliase the recombination parameters (default values)
 result_struct(ii).offset = offset;
 Prec.params.tickness        = 100 * 1e-9;           % m     % thickness of the active layer
@@ -58,6 +49,10 @@ Prec.params.Excitondesnity  = 8e27;
 Prec.params.Vstar           = 0.000;
 Prec.const.T                = 300;
 Prec                        = paramsRec.calcall(Prec); % Update the Recombination Parameters
+
+% Field-dependent rate constants for this offset, using the device
+% temperature and RCTE so that forward/back transfer obey detailed balance
+[E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, Prec.const.T, Prec.params.RCTE);
 
 krecCT  = Prec.params.CT.results.knr;
 krecex  = Prec.params.Ex.results.knr;

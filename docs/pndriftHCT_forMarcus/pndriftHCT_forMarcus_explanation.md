@@ -143,11 +143,14 @@ Where interpolated_k is obtained from pre-calculated Marcus rate tables.
 
 #### CT to Exciton Transfer (kforEx)
 ```matlab
-kforEx = kdisexc·exp(-ΔE_LECT/(kᵦT))/RCTE·(1 - r₀_Ex) + interpolated_k_bak·r₀_Ex
+kforEx = kforEx₀·(1 - r₀_Ex) + interpolated_k_bak·r₀_Ex
+kforEx₀ = kdisexc·exp(-ΔE_LECT/(kᵦT))/RCTE   % if the layer has offset and RCTE
+kforEx₀ = Layers{kk}.kforEx                  % otherwise (value from the parameter file)
 ```
 Where:
-- ΔE_LECT = offset between exciton and CT states [eV]
-- RCTE = ratio parameter
+- ΔE_LECT = `Layers{kk}.offset`, the offset between exciton and CT states of the current layer [eV]
+- RCTE = `Layers{kk}.RCTE`, the ratio of CT to exciton density of states of the current layer
+- interpolated_k_bak comes from `marcus_rate_tables`, which divides the Marcus CT→LE rate by RCTE, so that k_bak/k = exp(-ΔE_LECT/(kᵦT))/RCTE at zero field (detailed balance)
 
 ## Function Structure
 

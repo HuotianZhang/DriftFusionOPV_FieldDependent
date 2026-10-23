@@ -47,15 +47,9 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 % The function will determine Vstart and Vend from the VV range
 [JJ_output, VV_output] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 
-% Interpolate to ensure JJ has the same dimension as input VV
-% This is necessary because run_MarcusTransfer_JV may return a different
-% number of voltage points than the input VV array
-if length(JJ_output) ~= length(VV)
-    % Use linear interpolation to match the input VV grid
-    JJ = interp1(VV_output, JJ_output, VV, 'linear', 'extrap');
-else
-    % If dimensions already match, no interpolation needed
-    JJ = JJ_output;
-end
+% Always interpolate onto the input grid: run_MarcusTransfer_JV only uses the
+% range of VV, and the series resistance correction shifts every voltage
+% point by J*R_s, so VV_output differs from VV even when the lengths match
+JJ = interp1(VV_output, JJ_output, VV, 'linear', 'extrap');
 
 end
