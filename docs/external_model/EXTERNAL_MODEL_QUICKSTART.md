@@ -2,7 +2,7 @@
 
 ## What is external_model.m?
 
-`external_model.m` is a new function that provides a simple interface to run Marcus transfer J-V (current-voltage) simulations. It replaces simple polynomial fitting equations (like `Y = k02 * X.^2 + k20`) with physics-based Marcus transfer calculations.
+`external_model.m` provides a simple interface to run Marcus transfer J-V (current-voltage) simulations. It replaces simple polynomial fitting equations (like `Y = k02 * X.^2 + k20`) with physics-based Marcus transfer calculations.
 
 ## Basic Usage
 
@@ -20,9 +20,11 @@ offset = 0.05;       % Energy offset (eV)
 lifetime_ex = 10;    % Exciton lifetime (ps)
 lambda = 0.5;        % Reorganization energy (eV)
 RCT = 1.5;           % Charge transfer distance (nm)
+E_gap = 1.8;         % Energy gap (eV)
+R_s = 0.001;         % Series resistance (kOhm·cm²)
 
 % Run the simulation
-JJ = external_model(VV, offset, lifetime_ex, lambda, RCT);
+JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 
 % Plot the results
 plot(VV, JJ, 'LineWidth', 2);
@@ -35,7 +37,7 @@ grid on;
 ## Function Signature
 
 ```matlab
-function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
+function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 ```
 
 ### Input Parameters
@@ -47,6 +49,8 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
 | `lifetime_ex` | scalar | Exciton lifetime (ps) | `10` |
 | `lambda` | scalar | Reorganization energy (eV) | `0.5` |
 | `RCT` | scalar | Charge transfer distance (nm) | `1.5` |
+| `E_gap` | scalar | Energy gap (eV) | `1.8` |
+| `R_s` | scalar | Series resistance (kΩ·cm²), applied after the simulation as V + J·R_s | `0.001` |
 
 ### Output
 
@@ -54,13 +58,15 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT)
 |--------|------|-------------|
 | `JJ` | vector | Current density (mA/cm²) corresponding to VV |
 
+Only the range of `VV` (`min(VV)` to `max(VV)`) sets the simulated voltage sweep; the solver chooses its own voltage points, and the result is interpolated onto `VV`. The number of points in `VV` therefore does not change the run time.
+
 ## Common Use Cases
 
 ### 1. Single J-V Curve
 
 ```matlab
 VV = linspace(0, 1.2, 50);
-JJ = external_model(VV, 0.05, 10, 0.5, 1.5);
+JJ = external_model(VV, 0.05, 10, 0.5, 1.5, 1.8, 0.001);
 plot(VV, JJ);
 ```
 
@@ -73,7 +79,7 @@ offsets = [0.00, 0.05, 0.10, 0.15];
 figure;
 hold on;
 for i = 1:length(offsets)
-    JJ = external_model(VV, offsets(i), 10, 0.5, 1.5);
+    JJ = external_model(VV, offsets(i), 10, 0.5, 1.5, 1.8, 0.001);
     plot(VV, JJ, 'DisplayName', sprintf('offset = %.2f eV', offsets(i)));
 end
 legend('Location', 'best');
@@ -92,7 +98,7 @@ lifetimes = [5, 10, 15, 20];
 figure;
 hold on;
 for i = 1:length(lifetimes)
-    JJ = external_model(VV, 0.05, lifetimes(i), 0.5, 1.5);
+    JJ = external_model(VV, 0.05, lifetimes(i), 0.5, 1.5, 1.8, 0.001);
     plot(VV, JJ, 'DisplayName', sprintf('\\tau = %d ps', lifetimes(i)));
 end
 legend('Location', 'best');
@@ -115,7 +121,7 @@ for i = 1:length(lambdas)
     subplot(1, 3, subplot_idx);
     hold on;
     for j = 1:length(offsets)
-        JJ = external_model(VV, offsets(j), 10, lambdas(i), 1.5);
+        JJ = external_model(VV, offsets(j), 10, lambdas(i), 1.5, 1.8, 0.001);
         plot(VV, JJ, 'DisplayName', sprintf('offset=%.2f', offsets(j)));
     end
     title(sprintf('\\lambda = %.1f eV', lambdas(i)));
@@ -151,13 +157,13 @@ If you need both JJ and VV outputs, use `run_MarcusTransfer_JV` directly:
 
 ```matlab
 VV_input = linspace(0, 1.2, 50);
-[JJ, VV_output] = run_MarcusTransfer_JV(VV_input, 0.05, 10, 0.5, 1.5);
+[JJ, VV_output] = run_MarcusTransfer_JV(VV_input, 0.05, 10, 0.5, 1.5, 1.8, 0.001);
 ```
 
 Or with a scalar voltage (will simulate from 0 to that value):
 
 ```matlab
-[JJ, VV_output] = run_MarcusTransfer_JV(1.2, 0.05, 10, 0.5, 1.5);
+[JJ, VV_output] = run_MarcusTransfer_JV(1.2, 0.05, 10, 0.5, 1.5, 1.8, 0.001);
 ```
 
 ## Example Scripts
@@ -180,15 +186,11 @@ run example_run_MarcusTransfer
 
 ### Error: "Undefined function or variable 'deviceparams'"
 
-Make sure to add all subdirectories to the path:
-```matlab
-addpath(genpath(pwd));
-```
+Set the current folder to the repository root and run `startup.m`, which adds all subfolders to the path. Parameter files are loaded relative to the repository root.
 
 ### Simulation takes too long
 
 The simulation can be slow for some parameter combinations. Consider:
-- Reducing the number of voltage points
 - Starting with a smaller voltage range
 - Using default/typical parameter values first
 
@@ -201,6 +203,5 @@ Check that:
 
 ## More Information
 
-For detailed information about the refactoring and implementation, see:
-- `EXTERNAL_MODEL_REFACTORING.md` - Comprehensive documentation
 - Function help: `help external_model` or `help run_MarcusTransfer_JV`
+- The fixed device parameters (thickness, mobility, rate constants, ...) are set in `functions/build_MarcusTransfer_device.m`

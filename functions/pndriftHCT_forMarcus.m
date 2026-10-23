@@ -27,14 +27,8 @@ localtime = cputime;
 % assume that first are the x points from the previous solution, and the
 % second is the previous solution.
 %
-% set(0,'DefaultLineLinewidth',2);
-% set(0,'DefaultAxesFontSize',24);
-% set(0,'DefaultFigurePosition', [600, 400, 640, 400]);
 
 
-% Fit the data to a low-degree polynomial (e.g., degree 2 or 3)
-% degree = 2;  % Adjust degree based on data complexity
-% p_coeffs = polyfit(E_values, k_values, degree);
 
 if isempty(varargin)
     params = pnParamsHCT;                         % Calls Function EParams and stores in sturcture 'params'
@@ -61,7 +55,6 @@ end
 % Define the x points to give the initial
 
 icx = xmesh;
-% genspace = linspace(0,tn+tp,pii);
 
 
 xmax=max(xmesh);
@@ -72,15 +65,8 @@ Vapp_fun = fun_gen(params.Experiment_prop.V_fun_type);
 % below for the: equation, initial conditions, boundary conditions
 % sol = pdepe(m(symmetry constant),pdefun(main function),icfun(initial condition),bcfun(boundary condition),xmesh (spatial mesh),tspan) solves a system of parabolic and elliptic PDEs with one spatial variable x and time t. At least one equation must be parabolic. The scalar m represents the symmetry of the problem (slab, cylindrical, or spherical). The equations being solved are coded in pdefun, the initial value is coded in icfun, and the boundary conditions are coded in bcfun. The ordinary differential equations (ODEs) resulting from discretization in space are integrated to obtain approximate solutions at the times specified in tspan. The pdepe function returns values of the solution on a mesh provided in xmesh.
 sol = pdepe(params.solveropt.m,@pdex4pde,@pdex4ic,@pdex4bc,xmesh,params.Time_properties.tmesh,params.solveropt.options);
-% assignin('base', 'sol', sol);
 SizesSol=size(sol);
 solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstruct.x = xmesh; solstruct.t = params.Time_properties.tmesh(1:SizesSol(1));solstruct.sol = sol;
-% solstruct = DriftanalyseCT(solstruct);
-% solstruct.timespent=timespent;
-% assignin('base', 'sol', solstruct);
-% if params.Experiment_prop.figson==1
-%     driftplotCT(solstruct);
-% end
 % % --------------------------------------------------------------------------
 % Set up partial differential equation (pdepe) (see MATLAB pdepe help for details of c, f, and s)
     function [c,f,s] = pdex4pde(x,t,u,DuDx)
@@ -105,7 +91,6 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
         end
 
 %%%%%%%%%% This is the beginning of g. g should be the generation rate
-        %if side == 1
         % Uniform Generation
                 % OM = Optical Model
                 % 0 = Uniform Generation
@@ -183,19 +168,10 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
 
 %%%%%%%%%% This is the beginning of s
         
-        % switch params.Experiment_prop.V_fun_type
-        %     case 'constant'
-        %         Vapp = params.Experiment_prop.V_fun_arg(1);
-        %     otherwise
-        %         Vapp = Vapp_fun(params.Experiment_prop.V_fun_arg, t);
-        % end
-        %E_field = abs(Vapp-params.Experiment_prop.Vbi)/1e-7;%1e-7 original params.Layers{3}.XR=1.9e-5
-        E_field = abs(DuDx(4))/1e-2;%1e-7 original params.Layers{3}.XR=1.9e-5
+        E_field = abs(DuDx(4))/1e-2;   % field magnitude, V/cm -> V/m
 
         if isfield(params.Layers{kk},'r0_Ex') %% if there is r0_Ex, use it to calculate field dependence of exciton dissociation
             r0_Ex=params.Layers{kk}.r0_Ex;
-            % kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
-            %kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(DuDx(4))*r0_Ex/(kB*T));
             interpolated_k = interp1(params.physical_const.E_values, params.physical_const.k_values, E_field, 'linear', 'extrap');
             interpolated_k_bak = interp1(params.physical_const.E_values, params.physical_const.k_bak_values, E_field, 'linear', 'extrap');
         else
@@ -204,32 +180,14 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
             interpolated_k_bak=1;
         end
 
-        if isfield(params.Layers{kk},'r0_CT')%% if there is r0_Ex
-            % , use it to calculate field dependence of CT dissociation
+        if isfield(params.Layers{kk},'r0_CT') %% if there is r0_CT, use it to calculate field dependence of CT dissociation
             r0_CT=params.Layers{kk}.r0_CT;%start with r0=3nm
         else
             r0_CT=0;
         end
 
-        % if isfield(params.Layers{kk},'offset')%% if there is offset, use it to calculate field dependence of exciton dissociation
-        % % else
-        % % end
-        % 
-        % % 
-        % % 
-        % % 
-        % % Interpolate to find the corresponding k value
-        %     % offset=params.Layers{kk}.offset;
-        %     % E_internal = offset*1e9;%5e7;
-        %     % k_equi_factor = Integrate_k(E_field, E_internal);%calculate Braun factor (sphere internal field and one direction external field)
-        %     %kdis=params.Layers{kk}.kdis*exp(q*abs(Vapp-params.Experiment_prop.Vbi)/params.Layers{3}.XR*r0_CT/(kB*T)); %try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)). If r0 = 0, kdis = kdis0.
-        %     %kdisexc=params.Layers{kk}.kdisexc*exp(q*abs(Vapp-params.Experiment_prop.Vbi)/params.Layers{3}.XR*r0_Ex/(kB*T));
-        %     kdisexc=params.Layers{kk}.kdisexc*k_equi_factor;
-        % else
-        %     kdisexc=params.Layers{kk}.kdisexc;
-        %     % kdis=params.Layers{kk}.kdis*exp(q*abs(Vapp-params.Experiment_prop.Vbi)/params.Layers{3}.XR*r0_CT/(kB*T)); %try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)). If r0 = 0, kdis = kdis0.
         
-        kdisexc=params.Layers{kk}.kdisexc*(1-r0_Ex)+interpolated_k*r0_Ex;%polyval(p_coeffs, E_field);%params.Layers{kk}.kdisexc;
+        kdisexc=params.Layers{kk}.kdisexc*(1-r0_Ex)+interpolated_k*r0_Ex;
         kbT=params.physical_const.kB*params.physical_const.T;
         kdis=params.Layers{kk}.kdis*exp(q*E_field*r0_CT/kbT);
 
@@ -242,21 +200,7 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
             kforEx0=params.Layers{kk}.kforEx;
         end
         kforEx=kforEx0*(1-r0_Ex)+interpolated_k_bak*r0_Ex;%from marcus with field
-        %kforEx=params.Layers{kk}.kforEx*(1-r0_Ex)+interpolated_k_bak*r0_Ex;%from marcus with field
-        % end
-        % kdis=params.Layers{kk}.kdis*exp(q*abs(Vapp-params.Experiment_prop.Vbi)/params.Layers{3}.XR*r0_CT/(kB*T)); %try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)). If r0 = 0, kdis = kdis0.
 
-        % s = [kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));
-        %     kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));
-        %     kdisexc*(u(5))+params.Layers{kk}.kfor*((u(1)*u(2)))-(kdis*u(3)+params.Layers{kk}.krec*(u(3)-params.Layers{kk}.CT0))-params.Layers{kk}.kforEx*(u(3));
-        %     (q/params.Layers{kk}.epp)*(-u(1)+u(2)-params.Layers{kk}.NA+params.Layers{kk}.ND);
-        %     g-kdisexc*(u(5))-params.Layers{kk}.krecexc*(u(5)-params.Layers{kk}.Ex0)+params.Layers{kk}.kforEx*(u(3));];%abs
-
-        % s = [kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%try to add field dependence in the form kdis=kdis0*exp(q*dudx(4)*r0/(kB*T)); 
-        %     kdis*u(3)- params.Layers{kk}.kfor*((u(1)*u(2)));%start with r0=3nm
-        %     kdisexc*(u(5))+params.Layers{kk}.kfor*((u(1)*u(2)))-(kdis*u(3)+params.Layers{kk}.krec*(u(3)-params.Layers{kk}.CT0))-params.Layers{kk}.kforEx*(u(3));
-        %     (q/params.Layers{kk}.epp)*(-u(1)+u(2)-params.Layers{kk}.NA+params.Layers{kk}.ND);
-        %     g-kdisexc*(u(5))-params.Layers{kk}.krecexc*(u(5)-params.Layers{kk}.Ex0)+params.Layers{kk}.kforEx*(u(3));];%abs
 
 
         s = [kdis*(u(3))- params.Layers{kk}.kfor*(((u(1))*(u(2))));
@@ -264,9 +208,6 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
             kdisexc*(u(5))+params.Layers{kk}.kfor*(((u(1))*(u(2))))-(kdis*(u(3))+params.Layers{kk}.krec*(u(3)-params.Layers{kk}.CT0))-kforEx*(u(3));
             (q/params.Layers{kk}.epp)*(-u(1)+u(2)-params.Layers{kk}.NA+params.Layers{kk}.ND);
             g-kdisexc*(u(5))-params.Layers{kk}.krecexc*(u(5)-params.Layers{kk}.Ex0)+kforEx*(u(3));];%abs
-%         if x>1.5e-5
-%             pause(0.1)
-%         end 
 %%%%%%%%%% This is the end of s
 
         if params.Experiment_prop.equilibrium==1
@@ -329,7 +270,6 @@ solstruct.params = params;  solstruct.tspan=params.Time_properties.tmesh ;solstr
             otherwise
                 Vapp = Vapp_fun(params.Experiment_prop.V_fun_arg, t);
         end
-%                 disp("time"+num2str(t)+"Vapp "+num2str(Vapp));
 
         % Zero current
         switch params.Experiment_prop.BC

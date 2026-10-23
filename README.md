@@ -42,7 +42,6 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
 ├── parameters/                   % Device parameter files (.xlsx)
 ├── optical_data/                 % n,k data for the transfer-matrix optical model
 ├── resourceFiles/                % AM1.5 spectrum
-├── results/                      % Saved example outputs (.fig)
 ├── tests/                        % Smoke tests (run automatically by GitHub Actions)
 └── docs/                         % Documentation (see below)
 ```
@@ -62,11 +61,8 @@ The same tests run on GitHub Actions (`.github/workflows/matlab-tests.yml`) for 
 | Topic | Location |
 |---|---|
 | Parameter list | [`docs/List_of_Parameters.docx`](docs/List_of_Parameters.docx) |
-| `external_model.m` interface | [Quick Start](docs/external_model/EXTERNAL_MODEL_QUICKSTART.md) · [Technical notes](docs/external_model/EXTERNAL_MODEL_REFACTORING.md) · [Changes](docs/external_model/CHANGES_SUMMARY.txt) |
-| Marcus transfer workflow refactoring | [Overview](docs/marcus_refactoring/README_REFACTORING.md) · [Summary](docs/marcus_refactoring/REFACTORING_SUMMARY.md) · [Notes](docs/marcus_refactoring/REFACTORING_NOTES.md) |
-| `pndriftHCT_forMarcus.m` solver | [Index](docs/pndriftHCT_forMarcus/README.md) · [Quick reference](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_quick_reference.md) · [Workflow](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_workflow.md) · [Explanation](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md) |
-| Solver optimizations & testing | [Summary](docs/pndriftHCT_forMarcus/OPTIMIZATION_SUMMARY.md) · [Details](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_optimizations.md) · [Before/after](docs/pndriftHCT_forMarcus/BEFORE_AFTER_COMPARISON.md) · [Testing checklist](docs/pndriftHCT_forMarcus/TESTING_CHECKLIST.md) · [Logical operator bug fix](docs/pndriftHCT_forMarcus/BUGFIX_LOGICAL_OPERATOR.md) |
-| Class refactoring analysis (proposals, not yet applied) | [Executive summary](docs/class_refactoring_analysis/ANALYSIS_COMPLETE.md) · [Index](docs/class_refactoring_analysis/DOCUMENTATION_INDEX.md) |
+| `external_model.m` interface | [Quick Start](docs/external_model/EXTERNAL_MODEL_QUICKSTART.md) |
+| `pndriftHCT_forMarcus.m` solver | [Quick reference](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_quick_reference.md) · [Explanation](docs/pndriftHCT_forMarcus/pndriftHCT_forMarcus_explanation.md) |
 
 ## Citation
 
