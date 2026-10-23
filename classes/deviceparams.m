@@ -56,6 +56,7 @@ classdef deviceparams
                 % 1 = Beer-Lamber (Requires pre calculation using Igor code & gen profile in base workspace)
                 % 2 = Transfer Matrix (Stanford)
                 light_properties.OM  =0;
+                light_properties.TM_material = 'PBDB-T_ITIC'; % optical_data/<name>_nk.txt of the active layer (OM = 2)
                 light_properties.Genstrength  =2.5e21;%for uniform generation in cm-3
                 
                 % Pulse of  light properties
@@ -506,10 +507,14 @@ classdef deviceparams
             DP.results.Vocrad = Prec.results.Vocrad;
         end
         function DP=Transfer_matrix_generation_profile(DP)
-            %need to check that the name of the Nk file corresponds to the
-            %name of the device here
+            % Transfer-matrix generation profile in the photoactive layer
+            % (the layer with int ~= 0), whose n,k data are read from
+            % optical_data/<light_properties.TM_material>_nk.txt
             name='PBDB-T_ITIC';
-            activelayer=2;
+            if isfield(DP.light_properties,'TM_material')
+                name=DP.light_properties.TM_material;
+            end
+            activelayer=find(cellfun(@(L) L.int~=0, DP.Layers),1);
             Lightintensity=DP.light_properties.Int;
             tickness=DP.Layers{activelayer}.tp*1e7;%in nm
             [Xpos,Gx]=TransferMatrix_generation(tickness,name,Lightintensity);

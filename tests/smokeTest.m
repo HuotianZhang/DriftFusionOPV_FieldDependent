@@ -35,3 +35,13 @@ verifyTrue(testCase, all(isfinite(JJ)));
 % Under 1 sun the short-circuit current is negative
 verifyLessThan(testCase, JJ(1), 0);
 end
+
+function testTransferMatrixProfileInActiveLayer(testCase)
+DP = deviceparams(fullfile('parameters', 'DeviceParameters_Default.xlsx'));
+DP.light_properties.Int = 1;
+DP = DP.Transfer_matrix_generation_profile();
+active = find(cellfun(@(L) L.int ~= 0, DP.Layers), 1);
+x = DP.light_properties.Gensprofile_pos;
+verifyGreaterThanOrEqual(testCase, min(x), DP.Layers{active}.XL - 1e-12);
+verifyGreaterThan(testCase, sum(DP.light_properties.Gensprofile_signal), 0);
+end
