@@ -10,7 +10,7 @@ file_name = 'simulation_Angle_result.mat';
 
 % Fixed parameters for Marcus rate calculations
 lambda = 0.5;  % eV - Reorganization energy
-RCT = 1.5;     % nm - Charge transfer distance
+RCT = 1.5;     % nm - Electron-hole separation of the CT state (CT dipole e*RCT)
 E_gap = 1.4;   % eV - Exciton energy
 
 lifetime_ex = 10; %eciton lifetime (ps)

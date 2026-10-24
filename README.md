@@ -8,33 +8,36 @@ DriftFusion code developed by Mohammed Azzouzi as part of his PhD Thesis at Impe
 
 Run `startup.m` (in the repository root) to add the code folders to the MATLAB path. Data files are located relative to the repository root, so the scripts work from any current folder. No toolboxes are needed beyond base MATLAB (`pdepe` is part of it).
 
-### Basic Tutorial
+### First steps
 
-1. Open `Example_workflow.m`
-2. Modify the parameters in the Example_workflow to tune the Prec (Recombination Parameters)
-3. Inside the `parameters` folder, make a copy of the default parameters and give it an appropriate name
-4. Modify the parameters in your deviceParameter file in the `parameters` folder
-5. See `docs/List_of_Parameters.docx` for a description of the parameters
+Start with the guided examples in [`examples/`](examples/README.md). Each one runs on its own and explains what it does:
 
-### Marcus Transfer J-V Simulation
+| Script | Topic |
+|---|---|
+| `ex01_first_jv_curve.m` | Your first J-V curve; Jsc, Voc, FF and PCE |
+| `ex02_parameter_sweep.m` | Effect of material and device parameters |
+| `ex03_stark_effect.m` | Field-dependent LE↔CT transfer and the Stark controls |
+| `ex04_device_simulation.m` | Step-by-step device simulation, internal profiles |
+| `ex05_recombination_and_spectra.m` | LE/CT states from optical parameters, PL/EL spectra, custom parameter files |
+| `ex06_fit_measured_jv.m` | Fitting a measured J-V curve |
+
+The one-line interface used in most of them:
 
 ```matlab
-% Simple interface: J-V curve for a given voltage vector
-JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s);
-% Optional device parameters, e.g. for fitting
-JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, 'thickness', 120, 'mobility', 1e-3);
+startup                                                   % add the code folders to the path
+V  = linspace(0, 1.4, 141);                               % V
+J  = external_model(V, 0.2, 10, 0.5, 1.5, 1.8, 0);         % offset, lifetime_ex, lambda, RCT, E_gap, R_s -> J (mA/cm^2)
+pv = jv_parameters(V, J)                                  % Jsc, Voc, FF, PCE
+J  = external_model(V, 0.2, 10, 0.5, 1.5, 1.8, 0, 'mobility', 1e-3, 'thickness', 120);   % optional device parameters
 ```
 
-- `example_external_model.m` – usage of `external_model`
-- `example_run_MarcusTransfer.m` – usage of the lower-level `run_MarcusTransfer_JV`
+To simulate your own device stack, copy `parameters/DeviceParameters_Default.xlsx`, edit the copy (see `docs/List_of_Parameters.docx`) and load it as in example 5.
 
 ## Repository Structure
 
 ```
 ├── startup.m                     % Adds the code folders to the MATLAB path
-├── Example_workflow.m            % Basic tutorial
-├── example_external_model.m      % external_model example
-├── example_run_MarcusTransfer.m  % run_MarcusTransfer_JV example
+├── examples/                     % Guided examples for first-time users
 ├── classes/                      % Core classes (deviceparams, paramsRec, device, dfana, dfplot, ...)
 ├── functions/                    % Solver and helpers (pndriftHCT, external_model, marcus_rate_tables, ...)
 ├── scripts/                      % Research / analysis scripts (incl. legacy MarcusTransfer_JV_0620_334.m)
@@ -48,8 +51,9 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, 'thickness
 ## Testing
 
 - `tests/smokeTest.m`: device parameters, transfer-matrix optical data and `external_model` load and run.
-- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
-- `tests/simulationTest.m`: J-V simulations of four Marcus devices and the `Example_workflow` device, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime and field dependence).
+- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the orientation-averaged Stark shift against numerical integration, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
+- `tests/examplesTest.m`: runs every script in `examples/`.
+- `tests/simulationTest.m`: J-V simulations of six Marcus devices (including each Stark term on its own) and the device of example 5, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime, field dependence and the quadratic Stark shift).
 
 Run them from MATLAB:
 

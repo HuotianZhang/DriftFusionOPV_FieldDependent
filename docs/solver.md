@@ -61,14 +61,41 @@ Older code used `r0_Ex = 1` as a switch for the Marcus rates. That value now mea
 
 ## Marcus rates with Stark shift
 
-`marcus_rate_tables(lambda, RCT, offset, T, RCTE)` returns the tables for `Layers{k}.marcus`. It uses `marcus_stark_table` (wrapped by `kDis_stark` for LE→CT and `kBak_stark` for CT→LE):
+`marcus_rate_tables(lambda, RCT, offset, T, RCTE, delta_alpha)` returns the tables for `Layers{k}.marcus`. It uses `marcus_stark_table` (wrapped by `kDis_stark` for LE→CT and `kBak_stark` for CT→LE), which evaluates `marcus_equation_stark` on fields 0–5×10⁷ V/m:
 
 ```
-k(F) = 0.1 · (2π/ħ) |Hab|² (4πλkT)^(−1/2) · exp(−(λ + ΔG + ΔE_CT(F))² / (4λkT))
-ΔE_CT(F) = −½ α_CT F|F|,   α_CT = α_TCNQ (RCT / d_TCNQ)⁴
+k(F) = 0.1 · (2π/ħ) |Hab|² (4πλkT)^(−1/2) · ⟨exp(−(λ + ΔG + σ·ΔE_CT(F, θ))² / (4λkT))⟩_θ
 ```
 
-with ΔG = −offset and +F for LE→CT, ΔG = +offset and −F for CT→LE, and Hab = 0.01 eV. The back rate is divided by RCTE, so at zero field `k_bak/k = exp(−offset/kT)/RCTE`, the same detailed balance that `generateDeviceparams` uses for `kforEx`. Pass the device temperature as `T`.
+with ΔG = −offset and σ = +1 for LE→CT, ΔG = +offset and σ = −1 for CT→LE, and Hab = 0.01 eV. The back rate is divided by RCTE, so at zero field `k_bak/k = exp(−offset/kT)/RCTE`, the same detailed balance that `generateDeviceparams` uses for `kforEx`. Pass the device temperature as `T`.
+
+### Stark shift of the CT state
+
+In a field of magnitude F, a CT state whose dipole makes an angle θ with the field is shifted by
+
+```
+ΔE_CT(F, θ) = −|Δμ| F cos θ − ½ Δα F²,     |Δμ| = e·RCT
+```
+
+relative to the LE state, which is taken as unshifted. The two terms are the linear and quadratic Stark effects; |Δμ| and Δα are the change in dipole moment and in polarizability on going from LE to CT, the Liptay parameters measured by electroabsorption. The rate is averaged over isotropic orientations (cos θ uniform in [−1, 1]), which has a closed form in terms of error functions. Each orientation obeys detailed balance and both terms vanish at F = 0, so the zero-field rates and the equilibrium densities do not depend on the Stark parameters.
+
+| Control | Quantity | Units | Default | Off |
+|---|---|---|---|---|
+| `RCT` (positional) | electron–hole separation of the CT state; CT dipole \|Δμ\| = e·RCT (1 nm ≙ 48.0 D) | nm | — | `0` |
+| `'delta_alpha'` (name-value) | polarizability volume change LE → CT, Δα | Å³ | 8.5×10⁵ | `0` |
+| `marcus.weight` | mixes the field-dependent rates with the zero-field ones | — | 1 | `0` |
+
+- To use a dipole measured by electroabsorption, pass `RCT = |Δμ| / 48.0 D` (in nm).
+- For an isotropic film the linear term averages out to first order. It raises the rates only through ⟨(|Δμ|F cos θ)²⟩ = (|Δμ|F)²/3, about 1 % at 10⁷ V/m for RCT = 1.5 nm, λ = 0.5 eV and offset 0.05 eV. The quadratic term shifts the CT level of every orientation. At the default Δα it lowers the CT level by 30 meV at 10⁷ V/m and raises the LE→CT rate by 64 % there.
+- The default Δα keeps the quadratic shift of the earlier model, which took the polarizability of TCNQ (85 Å³ for a 1.5 Å dipole length) scaled by (RCT / 1.5 Å)⁴, at RCT = 1.5 nm. With RCT = 0 the model reduces to that earlier one for a 1.5 nm CT state. Set Δα from electroabsorption data where available.
+- Setting both `RCT = 0` and `'delta_alpha', 0` gives field-independent LE↔CT rates, equivalent to `marcus.weight = 0`.
+
+To change the Stark parameters of an existing device, rebuild the tables:
+
+```matlab
+[E, k, kb] = marcus_rate_tables(lambda, RCT, offset, Prec.const.T, Prec.params.RCTE, delta_alpha);
+DP.Layers{2}.marcus = struct('E', E, 'k', k, 'k_bak', kb, 'weight', 1);
+```
 
 `lambda` is the reorganization energy of the LE→CT electron transfer. It is a different quantity from `L0`/`Li` in `paramsRec`, which set the line shapes of the optical LE→ground and CT→ground transitions, so the two are set independently.
 
@@ -92,6 +119,8 @@ DV = device.runsolJsc(DV, 1);             % 1 sun, short circuit
 DV = device.runsolJV(DV, 1, 0, 1.4);      % voltage sweep 0 -> 1.4 V
 [Jsc, Voc, FF, JJ, VV] = dfplot.JV_new(DV.sol_JV, 1);
 ```
+
+Runnable versions of this and the other routes are in [`examples/`](../examples/README.md).
 
 `external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, ...)` wraps these steps and returns J on the voltage grid `VV`; optional name-value arguments set the device parameters (see `help build_MarcusTransfer_device`).
 

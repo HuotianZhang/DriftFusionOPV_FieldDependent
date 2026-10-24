@@ -16,15 +16,16 @@ function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, 
 %                 Example: 10 ps
 %   lambda      - Reorganization energy (eV)
 %                 Example: 0.5 eV
-%   RCT         - Charge transfer distance (nm)
+%   RCT         - Electron-hole separation of the CT state (nm); sets the
+%                 CT dipole e*RCT for the linear Stark shift (0 = off)
 %                 Example: 1.5 nm
 %   E_gap       - Energy gap (eV)
 %                 Example: 1.8 eV
 %   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
 %                 Example: 0.001 kOhms·cm²
 %   Name-value  - Optional device parameters passed to build_MarcusTransfer_device
-%                 ('thickness', 'NC', 'mobility', 'kdis', 'kfor', 'krec',
-%                 'RCTE', 'T', 'verbose')
+%                 ('delta_alpha', 'thickness', 'NC', 'mobility', 'kdis',
+%                 'kfor', 'krec', 'RCTE', 'T', 'verbose')
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²)

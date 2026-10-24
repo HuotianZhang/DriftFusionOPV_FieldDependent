@@ -4,15 +4,17 @@
 % for multiple energy offset values.
 
 % Parameters for Marcus rate calculations
-lambda = 0.5;  % eV - Reorganization energy  
-RCT = 1.5;     % nm - Charge transfer distance
+lambda = 0.5;        % eV - Reorganization energy
+RCT = 1.5;           % nm - Electron-hole separation of the CT state (CT dipole e*RCT)
+delta_alpha = 8.5e5; % Angstrom^3 - Polarizability change LE -> CT
+T = 300;             % K - Temperature
 
 num_curve = 3;
 deltaG_values = 0.00:0.1:(-0.05+num_curve*0.1);
 
 % Calculate rates for the first offset to get E_values
 offset_first = abs(deltaG_values(1));
-kLECT_first = kDis_stark(lambda, RCT, offset_first);
+kLECT_first = kDis_stark(lambda, RCT, offset_first, T, delta_alpha);
 x = kLECT_first(:, 1)/100;  % convert V/m to V/cm
 
 % Preallocate matrix for multiple curves
@@ -21,7 +23,7 @@ y_matrix = zeros(size(kLECT_first(:,1), 1), num_curve);
 % Calculate rates for each offset value
 for ii=1:1:num_curve
     offset = abs(deltaG_values(ii));
-    kLECT = kDis_stark(lambda, RCT, offset);
+    kLECT = kDis_stark(lambda, RCT, offset, T, delta_alpha);
     y_matrix(:,ii) = kLECT(:,2)*10;
 end
 % Extract the remaining 10 columns for plotting
@@ -43,7 +45,7 @@ end
 % %legend('Series 1', 'Series 2', 'Series 3', ..., 'Series 10'); % Add a legend (optional)
 
 % Create the plot title dynamically
-plot_title = sprintf('{\\it \\lambda} = %.2f eV and {\\it d}_{CT} = %.1f nm', lambda, RCT);
+plot_title = sprintf('{\\it \\lambda} = %.2f eV, {\\it r}_{CT} = %.1f nm, \\Delta\\alpha = %.2g Å^3', lambda, RCT, delta_alpha);
 
 
 % Method 2: Plotting all columns at once (more efficient)

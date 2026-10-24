@@ -19,7 +19,7 @@ VV = linspace(0, 1.2, 50);  % 50 points from 0 to 1.2 V
 offset = 0.05;       % Energy offset (eV)
 lifetime_ex = 10;    % Exciton lifetime (ps)
 lambda = 0.5;        % Reorganization energy (eV)
-RCT = 1.5;           % Charge transfer distance (nm)
+RCT = 1.5;           % Electron-hole separation of the CT state (nm)
 E_gap = 1.8;         % Energy gap (eV)
 R_s = 0.001;         % Series resistance (kOhm·cm²)
 
@@ -48,7 +48,7 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s)
 | `offset` | scalar | Energy offset (eV) | `0.05` |
 | `lifetime_ex` | scalar | Exciton lifetime (ps) | `10` |
 | `lambda` | scalar | Reorganization energy (eV) | `0.5` |
-| `RCT` | scalar | Charge transfer distance (nm) | `1.5` |
+| `RCT` | scalar | Electron-hole separation of the CT state (nm); sets the CT dipole e·RCT for the linear Stark shift | `1.5` |
 | `E_gap` | scalar | Energy gap (eV) | `1.8` |
 | `R_s` | scalar | Series resistance (kΩ·cm²), applied after the simulation as V + J·R_s | `0.001` |
 
@@ -140,14 +140,14 @@ end
 - **offset**: 0.0 to 0.5 eV (energy difference between excited state and CT state)
 - **lifetime_ex**: 1 to 100 ps (typical exciton lifetimes)
 - **lambda**: 0.3 to 0.7 eV (typical reorganization energies)
-- **RCT**: 0.5 to 3.0 nm (typical charge transfer distances)
+- **RCT**: 0.5 to 3.0 nm (CT dipole 24 to 144 D)
 
 ### Physical Meaning
 
 - **offset**: Controls the driving force for charge separation
 - **lifetime_ex**: Determines how long excitons live before recombination
 - **lambda**: Represents the energy penalty for nuclear reorganization
-- **RCT**: Distance over which charge transfer occurs
+- **RCT**: Electron-hole separation in the CT state; with the optional `'delta_alpha'` (polarizability change, Å³) it sets the Stark shift of the CT state in the internal field (see [solver.md](../solver.md#stark-shift-of-the-ct-state))
 
 ## Advanced Usage
 
@@ -168,19 +168,7 @@ Or with a scalar voltage (will simulate from 0 to that value):
 
 ## Example Scripts
 
-Two complete example scripts are provided:
-
-1. **`example_external_model.m`**: Demonstrates basic usage of external_model
-2. **`example_run_MarcusTransfer.m`**: Shows usage of run_MarcusTransfer_JV
-
-Run them with:
-```matlab
-run example_external_model
-```
-or
-```matlab
-run example_run_MarcusTransfer
-```
+The guided examples in [`examples/`](../../examples/README.md) use `external_model` for a first J-V curve (`ex01_first_jv_curve.m`), parameter sweeps (`ex02_parameter_sweep.m`), the Stark controls (`ex03_stark_effect.m`) and fitting a measured curve (`ex06_fit_measured_jv.m`). `jv_parameters(V, J)` returns Jsc, Voc, FF and PCE from the result.
 
 ## Troubleshooting
 
