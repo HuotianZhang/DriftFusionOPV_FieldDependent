@@ -37,6 +37,7 @@ xlabel('Voltage (V)');
 ylabel('Current density (mA/cm^2)');
 title(sprintf('J_{sc} = %.2f mA/cm^2, V_{oc} = %.3f V, FF = %.2f', pv.Jsc, pv.Voc, pv.FF));
 legend('J-V curve', 'maximum power point', 'Location', 'northwest');
+ylim([-1.3 0.6]*pv.Jsc);   % the forward-bias injection current grows steeply above Voc
 grid on
 
 % Next: ex02_parameter_sweep.m varies the material and device parameters.

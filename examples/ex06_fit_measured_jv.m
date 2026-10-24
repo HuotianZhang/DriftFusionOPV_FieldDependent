@@ -38,4 +38,5 @@ figure('Name', 'Example 6: fit');
 plot(V_meas, J_meas, 'ko', V, J_fit, 'LineWidth', 1.5);
 xlabel('Voltage (V)'); ylabel('Current density (mA/cm^2)');
 legend('measured', sprintf('fit, offset = %.3f eV', offset_fit), 'Location', 'northwest');
+ylim([-1.3 0.6]*max(-J_meas));
 grid on

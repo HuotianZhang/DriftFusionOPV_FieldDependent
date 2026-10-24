@@ -50,16 +50,19 @@ xlabel('Field (MV/cm)'); ylabel('k_{CT\rightarrowLE} (s^{-1})');
 V = linspace(0, 1.4, 141);
 figure('Name', 'Example 3B: J-V');
 hold on
+Jmax = 0;
 fprintf('\n %-22s Jsc (mA/cm^2)   Voc (V)    FF\n', 'case');
 for c = 1:size(cases, 1)
     J = external_model(V, offset, lifetime_ex, lambda, cases{c, 2}, E_gap, R_s, 'delta_alpha', cases{c, 3});
     pv = jv_parameters(V, J);
     fprintf(' %-22s    %6.3f       %.3f    %.3f\n', cases{c, 1}, pv.Jsc, pv.Voc, pv.FF);
+    Jmax = max(Jmax, pv.Jsc);
     plot(V, J, 'LineWidth', 2, 'DisplayName', cases{c, 1});
 end
 hold off
 xlabel('Voltage (V)'); ylabel('Current density (mA/cm^2)');
 title(sprintf('offset %.2f eV, \\lambda = %.1f eV', offset, lambda));
+ylim([-1.3 1]*Jmax);
 legend('Location', 'northwest'); grid on
 
 % For your own material, take |Delta_mu| and delta_alpha from electroabsorption

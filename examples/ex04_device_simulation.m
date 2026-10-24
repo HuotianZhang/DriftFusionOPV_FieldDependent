@@ -42,10 +42,12 @@ figure('Name', 'Example 4: profiles at short circuit');
 subplot(2, 1, 1)
 semilogy(xnm, n(end, :), xnm, p(end, :), xnm, CT(end, :), xnm, Ex(end, :), 'LineWidth', 2);
 xline(edges(1:end-1), ':');
-ylabel('Density (cm^{-3})'); legend('n', 'p', 'CT', 'LE', 'Location', 'best'); grid on
+ylim([1e5 1e20]);
+ylabel('Density (cm^{-3})'); legend('n', 'p', 'CT', 'LE', 'Location', 'eastoutside'); grid on
 subplot(2, 1, 2)
 plot(xnm, abs(FV(end, :))/1e6, 'LineWidth', 2);
 xline(edges(1:end-1), ':');
+legend('|F|', 'Location', 'eastoutside');   % keeps the x axes of both panels aligned
 xlabel('Position (nm)'); ylabel('|F| (MV/cm)'); grid on
 
 %% Changing a rate after the device is built
