@@ -185,6 +185,14 @@ classdef dfplot
             % Current at the contact plus the shunt current, used for the
             % plot, Jsc, Voc, FF and the returned curve alike
             Jtot = J.tot(:,end) + Vapp/Rshunt;
+            % The first sample of a sweep restarted from an earlier solution
+            % carries a spurious current from the time derivative in calcJ
+            % (large at low mobility); drop it. The next sample is less than
+            % 1e-5 V further, and Jsc is extrapolated back to 0 V.
+            if numel(Jtot) > 2
+                Jtot = Jtot(2:end);
+                Vapp = Vapp(2:end);
+            end
             
             if figureplot==1
                 hold on
@@ -196,7 +204,7 @@ classdef dfplot
                 ylabel('Current density [mA/cm^2]');
                 hold off
             end
-            Jsc=-interp1(Vapp,Jtot,0)*1e3;%in mAcm-2
+            Jsc=-interp1(Vapp,Jtot,0,'linear','extrap')*1e3;%in mAcm-2
             Voc=interp1(Jtot,Vapp,0);
             FF=max(-Vapp.*Jtot*1e3)/(Voc*Jsc);
             JJ=Jtot*1e3;

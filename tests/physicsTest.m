@@ -128,6 +128,23 @@ verifySize(testCase, JJ, size(VV));
 verifyEqual(testCase, JJ, expected, 'AbsTol', 1e-9*max(abs(J0)));
 end
 
+function testJVJscAtLowMobility(testCase)
+% At low mobility the first sample of a J-V sweep carries a large spurious
+% current from the time derivative in calcJ. JV_new must give the
+% steady-state short-circuit current, which cannot exceed the radiative limit.
+[DP, Prec] = build_MarcusTransfer_device(0.2, 10, 0.5, 1.5, 1.4, 'mobility', 1e-4, 'verbose', false);
+DP.Layers{2}.marcus.weight = 0;
+DV = device(DP);
+DV.Prec = Prec;
+DV = device.runsolJsc(DV, 1);
+DV = device.runsolJV(DV, 1, 0, 1.1);
+Jsc = dfplot.JV_new(DV.sol_JV, 0);
+J = dfana.calcJ(DV.sol_Jsc);
+Jsc_steady = -J.tot(end, end)*1e3;
+verifyEqual(testCase, Jsc, Jsc_steady, 'RelTol', 1e-3);
+verifyLessThan(testCase, Jsc, Prec.results.Jscrad);
+end
+
 function c = genbinom(r, k)
 % Binomial coefficient r over k for integer r of any sign
 c = prod(r - (0:k-1))/factorial(k);
