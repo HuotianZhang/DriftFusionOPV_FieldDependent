@@ -141,7 +141,7 @@ r.maxF = max(abs(FV(:)))*100;   % V/cm -> V/m
 end
 
 function [DP, Prec] = example_workflow_device()
-% Parameters of Example_workflow.m
+% Parameters of examples/ex05_recombination_and_spectra.m
 Prec                        = paramsRec;
 offset                      = 0.55;
 Prec.params.tickness        = 100 * 1e-9;

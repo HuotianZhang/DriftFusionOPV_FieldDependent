@@ -203,7 +203,7 @@ c = prod(r - (0:k-1))/factorial(k);
 end
 
 function Prec = example_prec()
-% Recombination parameters of Example_workflow.m
+% Recombination parameters of examples/ex05_recombination_and_spectra.m
 Prec                        = paramsRec;
 Prec.params.tickness        = 100 * 1e-9;
 Prec.params.Ex.DG0          = 1.8;

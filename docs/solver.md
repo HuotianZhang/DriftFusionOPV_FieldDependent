@@ -120,6 +120,8 @@ DV = device.runsolJV(DV, 1, 0, 1.4);      % voltage sweep 0 -> 1.4 V
 [Jsc, Voc, FF, JJ, VV] = dfplot.JV_new(DV.sol_JV, 1);
 ```
 
+Runnable versions of this and the other routes are in [`examples/`](../examples/README.md).
+
 `external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, ...)` wraps these steps and returns J on the voltage grid `VV`; optional name-value arguments set the device parameters (see `help build_MarcusTransfer_device`).
 
 - `DP.solveropt.verbose = false` silences progress messages and `pdepe` statistics (`external_model` is quiet by default).

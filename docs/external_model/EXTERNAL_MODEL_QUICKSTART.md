@@ -168,19 +168,7 @@ Or with a scalar voltage (will simulate from 0 to that value):
 
 ## Example Scripts
 
-Two complete example scripts are provided:
-
-1. **`example_external_model.m`**: Demonstrates basic usage of external_model
-2. **`example_run_MarcusTransfer.m`**: Shows usage of run_MarcusTransfer_JV
-
-Run them with:
-```matlab
-run example_external_model
-```
-or
-```matlab
-run example_run_MarcusTransfer
-```
+The guided examples in [`examples/`](../../examples/README.md) use `external_model` for a first J-V curve (`ex01_first_jv_curve.m`), parameter sweeps (`ex02_parameter_sweep.m`), the Stark controls (`ex03_stark_effect.m`) and fitting a measured curve (`ex06_fit_measured_jv.m`). `jv_parameters(V, J)` returns Jsc, Voc, FF and PCE from the result.
 
 ## Troubleshooting
 
