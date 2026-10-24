@@ -72,6 +72,7 @@ DV = device.runsolJsc(DV, 1);
 DV = device.runsolJV(DV, 1, 0, 1.5);
 figure(2)
 [Jsc, Voc, FF] = dfplot.JV_new(DV.sol_JV, 1);
+ylim([-1.5 1.5]*Jsc);   % JV_new fixes the axis at -30 to 10 mA/cm^2
 title('Example 5: J-V');
 fprintf('Simulated: Jsc = %.2f mA/cm^2, Voc = %.3f V, FF = %.3f\n', Jsc, Voc, FF);
 
