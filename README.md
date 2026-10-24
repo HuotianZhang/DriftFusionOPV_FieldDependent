@@ -48,8 +48,8 @@ JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, 'thickness
 ## Testing
 
 - `tests/smokeTest.m`: device parameters, transfer-matrix optical data and `external_model` load and run.
-- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
-- `tests/simulationTest.m`: J-V simulations of four Marcus devices and the `Example_workflow` device, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime and field dependence).
+- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the orientation-averaged Stark shift against numerical integration, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
+- `tests/simulationTest.m`: J-V simulations of six Marcus devices (including each Stark term on its own) and the `Example_workflow` device, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime, field dependence and the quadratic Stark shift).
 
 Run them from MATLAB:
 

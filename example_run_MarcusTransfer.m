@@ -10,7 +10,7 @@ VV = 0.8;         % Voltage endpoint (will simulate from 0 to 1.2 V)
 offset = 0.3;    % Energy offset in eV (can be any positive value)
 lifetime_ex = 100; % Exciton lifetime in picoseconds (ps)
 lambda = 0.3;     % Reorganization energy (eV)
-RCT = 0;        % Charge transfer distance (nm)
+RCT = 0;        % Electron-hole separation of the CT state (nm); 0 = no linear Stark shift
 E_gap = 1.8;     % Energy gap (eV)
 R_s = 0.001;     % Series resistance per area (kOhms/cm²)
 

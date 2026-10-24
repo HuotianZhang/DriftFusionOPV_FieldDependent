@@ -15,7 +15,7 @@ VV = linspace(0, 1.2, 50);  % 50 points from 0 to 1.2 V
 offset = 0.05;       % Energy offset (eV)
 lifetime_ex = 10;    % Exciton lifetime (ps)
 lambda = 0.5;        % Reorganization energy (eV)
-RCT = 1.5;           % Charge transfer distance (nm)
+RCT = 1.5;           % Electron-hole separation of the CT state (nm), CT dipole e*RCT
 E_gap = 1.8;         % Energy gap (eV)
 R_s = 0.001;         % Series resistance per area (kOhms·cm²)
 

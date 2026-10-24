@@ -12,16 +12,19 @@ root = fileparts(fileparts(mfilename('fullpath')));
 testCase.applyFixture(CurrentFolderFixture(root));
 testCase.applyFixture(PathFixture(root, 'IncludingSubfolders', true));
 
-% name, offset (eV), exciton lifetime (ps), lambda (eV), RCT (nm), E_gap (eV), Marcus weight
+% name, offset (eV), exciton lifetime (ps), lambda (eV), RCT (nm), E_gap (eV),
+% Marcus weight, further name-value arguments
 cases = {
-    'marcus_default',   0.05,  10, 0.5, 1.5, 1.8, 1
-    'marcus_offset020', 0.20,  10, 0.5, 1.5, 1.8, 1
-    'marcus_tau100',    0.05, 100, 0.5, 1.5, 1.8, 1
-    'marcus_nofield',   0.05,  10, 0.5, 1.5, 1.8, 0
+    'marcus_default',          0.05,  10, 0.5, 1.5, 1.8, 1, {}
+    'marcus_offset020',        0.20,  10, 0.5, 1.5, 1.8, 1, {}
+    'marcus_tau100',           0.05, 100, 0.5, 1.5, 1.8, 1, {}
+    'marcus_nofield',          0.05,  10, 0.5, 1.5, 1.8, 0, {}
+    'marcus_dipole_only',      0.05,  10, 0.5, 1.5, 1.8, 1, {'delta_alpha', 0}
+    'marcus_polarizability_only', 0.05, 10, 0.5, 0, 1.8, 1, {}
     };
 R = struct();
 for c = 1:size(cases, 1)
-    [DP, Prec] = build_MarcusTransfer_device(cases{c, 2:6}, 'verbose', false);
+    [DP, Prec] = build_MarcusTransfer_device(cases{c, 2:6}, cases{c, 8}{:}, 'verbose', false);
     DP.Layers{2}.marcus.weight = cases{c, 7};
     R.(cases{c, 1}) = simulate(DP, Prec, 1.6);
 end
@@ -42,12 +45,17 @@ function testRegression(testCase)
 % after recomputing the Laguerre table for the actual Huang-Rhys factor,
 % which lowers the radiative limit Vocrad and with it Voc by 5 mV
 % (Marcus devices) and 11-12 mV (example device), and switching to CODATA
-% constants (effect on Vocrad below 0.01 mV).
+% constants (effect on Vocrad below 0.01 mV). The linear Stark shift of the
+% CT dipole (e*RCT, orientation-averaged) was then added to the quadratic
+% one: it raises Jsc by 0.2-1.1 % in the Marcus devices, and
+% marcus_polarizability_only (RCT = 0) keeps the earlier default results.
 ref = struct( ...
-    'marcus_default',   [1.727457575  1.233063844  0.3634651799], ...
-    'marcus_offset020', [6.700888614  1.179348675  0.6536408602], ...
-    'marcus_tau100',    [8.884371268  1.290798143  0.5071574322], ...
+    'marcus_default',   [1.747166685  1.233062927  0.3596722351], ...
+    'marcus_offset020', [6.714204085  1.179339402  0.6524444602], ...
+    'marcus_tau100',    [8.936195509  1.290791077  0.5044375280], ...
     'marcus_nofield',   [0.6569693836 1.231500222  0.8998961134], ...
+    'marcus_dipole_only', [0.6669889635 1.231495127 0.8870894699], ...
+    'marcus_polarizability_only', [1.727457575 1.233063844 0.3634651799], ...
     'example_workflow', [0.3027620932 0.9341220427 0.8119981246]);
 R = testCase.TestData.R;
 for name = fieldnames(ref)'
@@ -104,6 +112,9 @@ verifyGreaterThan(testCase, R.marcus_tau100.Jsc, R.marcus_default.Jsc);
 verifyGreaterThan(testCase, R.marcus_tau100.Voc, R.marcus_default.Voc);
 % The built-in field assists dissociation
 verifyGreaterThan(testCase, R.marcus_default.Jsc, R.marcus_nofield.Jsc);
+% The quadratic Stark shift lowers the CT level in the field: faster LE->CT
+% and slower CT->LE transfer
+verifyGreaterThan(testCase, R.marcus_default.Jsc, R.marcus_dipole_only.Jsc);
 end
 
 function testFieldWithinMarcusTable(testCase)

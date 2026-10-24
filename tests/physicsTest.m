@@ -15,15 +15,20 @@ testCase.applyFixture(PathFixture(root, 'IncludingSubfolders', true));
 end
 
 function testMarcusZeroFieldDetailedBalance(testCase)
-% k_bak/k at zero field must follow exp(-offset/kT)/RCTE for any T and RCTE
+% k_bak/k at zero field must follow exp(-offset/kT)/RCTE for any T and RCTE,
+% whatever the Stark parameters (the Stark shift vanishes at zero field)
 kB = 8.6173324e-5;  % eV/K, as in deviceparams
+stark = [1.5 8.5e5; 0 0; 3 1e4];   % RCT (nm), delta_alpha (A^3)
 for T = [300 320]
     for RCTE = [0.1 0.3]
         for offset = [0.05 0.15]
-            [E, k, k_bak] = marcus_rate_tables(0.5, 1.5, offset, T, RCTE);
-            verifyEqual(testCase, E(1), 0);
-            verifyEqual(testCase, k_bak(1)/k(1), exp(-offset/(kB*T))/RCTE, 'RelTol', 1e-3, ...
-                sprintf('T = %g K, RCTE = %g, offset = %g eV', T, RCTE, offset));
+            for j = 1:size(stark, 1)
+                [E, k, k_bak] = marcus_rate_tables(0.5, stark(j, 1), offset, T, RCTE, stark(j, 2));
+                verifyEqual(testCase, E(1), 0);
+                verifyEqual(testCase, k_bak(1)/k(1), exp(-offset/(kB*T))/RCTE, 'RelTol', 1e-3, ...
+                    sprintf('T = %g K, RCTE = %g, offset = %g eV, RCT = %g nm, delta_alpha = %g A^3', ...
+                    T, RCTE, offset, stark(j, 1), stark(j, 2)));
+            end
         end
     end
 end
@@ -40,13 +45,53 @@ end
 
 function testMarcusRateWrappers(testCase)
 % kDis_stark/kBak_stark are the LE->CT and CT->LE directions of one table
-kf = kDis_stark(0.5, 1.5, 0.1, 300);
-kb = kBak_stark(0.5, 1.5, 0.1, 300);
-verifyEqual(testCase, kf, marcus_stark_table(0.5, 1.5, -0.1, 1, 300));
-verifyEqual(testCase, kb, marcus_stark_table(0.5, 1.5, 0.1, -1, 300));
-% Field lowers the CT energy: forward rate up for lambda > offset, back rate down
+kf = kDis_stark(0.5, 1.5, 0.1, 300, 8.5e5);
+kb = kBak_stark(0.5, 1.5, 0.1, 300, 8.5e5);
+verifyEqual(testCase, kf, marcus_stark_table(0.5, 1.5, -0.1, 1, 300, 8.5e5));
+verifyEqual(testCase, kb, marcus_stark_table(0.5, 1.5, 0.1, -1, 300, 8.5e5));
+% The quadratic shift lowers the CT energy: forward rate up for
+% lambda > offset, back rate down
+kf = kDis_stark(0.5, 0, 0.1, 300, 8.5e5);
+kb = kBak_stark(0.5, 0, 0.1, 300, 8.5e5);
 verifyGreaterThan(testCase, kf(end, 2), kf(1, 2));
 verifyLessThan(testCase, kb(end, 2), kb(1, 2));
+end
+
+function testStarkOrientationAverage(testCase)
+% The closed-form orientation average equals the numerical average of the
+% Marcus rate over cos(theta), for both directions and both Stark terms
+pc = physconst();
+Hab = 0.01; lambda = 0.5; T = 300;
+for F = [1e5 1e7 5e7]
+    for direction = [1 -1]
+        for dG = [0.05 0.3]
+            deltaG = -direction*dG;
+            for stark = [1.5 0; 1.5 8.5e5; 3 1e4]'
+                r_CT = stark(1)*1e-9;
+                dalpha = 4*pi*pc.eps0*stark(2)*1e-30;
+                shift = @(u) -r_CT*F*u - 0.5*dalpha*F^2/pc.q;   % eV
+                ref = 0.5*integral(@(u) marcus_plain(Hab, lambda, deltaG + direction*shift(u), T), ...
+                    -1, 1, 'RelTol', 1e-12, 'AbsTol', 0);
+                k = marcus_equation_stark(Hab, lambda, deltaG, T, F, r_CT, stark(2), direction);
+                verifyEqual(testCase, k, ref, 'RelTol', 1e-9, sprintf('F = %g V/m, direction %d, dG = %g eV', F, direction, dG));
+            end
+        end
+    end
+end
+end
+
+function testStarkLimits(testCase)
+lambda = 0.5; offset = 0.05; T = 300;
+% Without Stark terms the rates do not depend on the field
+kf = kDis_stark(lambda, 0, offset, T, 0);
+kb = kBak_stark(lambda, 0, offset, T, 0);
+verifyEqual(testCase, kf(:, 2), repmat(kf(1, 2), size(kf, 1), 1), 'RelTol', 1e-12);
+verifyEqual(testCase, kb(:, 2), repmat(kb(1, 2), size(kb, 1), 1), 'RelTol', 1e-12);
+% In an isotropic film the linear term enters to second order in F
+F = [0 1e6 2e6];
+k = marcus_equation_stark(0.01, lambda, -offset, T, F, 1.5e-9, 0, 1);
+verifyEqual(testCase, (k(3) - k(1))/(k(2) - k(1)), 4, 'RelTol', 1e-3);
+verifyGreaterThan(testCase, k(2), k(1));
 end
 
 function testRecombinationResultsMatchesPrec(testCase)
@@ -143,6 +188,13 @@ J = dfana.calcJ(DV.sol_Jsc);
 Jsc_steady = -J.tot(end, end)*1e3;
 verifyEqual(testCase, Jsc, Jsc_steady, 'RelTol', 1e-3);
 verifyLessThan(testCase, Jsc, Prec.results.Jscrad);
+end
+
+function k = marcus_plain(Hab, lambda, deltaG, T)
+% Marcus rate without field (s^-1), element-wise in deltaG
+pc = physconst();
+kT = pc.kB_eV*T;
+k = (2*pi/pc.hbar)*(Hab*pc.q)^2/sqrt(4*pi*lambda*kT*pc.q^2)*exp(-(lambda + deltaG).^2/(4*lambda*kT));
 end
 
 function c = genbinom(r, k)

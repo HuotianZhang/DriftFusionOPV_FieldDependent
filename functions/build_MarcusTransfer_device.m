@@ -8,10 +8,25 @@ function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, R
 %   offset      - Energy offset between excited state and CT state (eV)
 %   lifetime_ex - Exciton lifetime in picoseconds (ps)
 %   lambda      - Reorganization energy (eV)
-%   RCT         - Charge transfer distance (nm)
+%   RCT         - Electron-hole separation of the CT state (nm). Sets the
+%                 CT dipole |Delta_mu| = e*RCT (1 nm corresponds to 48.0 D)
+%                 for the linear Stark shift; 0 switches it off. For a
+%                 dipole measured by electroabsorption, RCT = |Delta_mu|/(48.0 D) nm.
 %   E_gap       - Energy gap (eV)
 %
+% Stark shift of the CT state in a field F (LE state unshifted), averaged
+% over isotropic CT orientations theta (see marcus_equation_stark):
+%   E_CT(F) = E_CT(0) - e*RCT*F*cos(theta) - delta_alpha*F^2/2
+% It enters the LE<->CT Marcus rates. Both terms vanish at zero field, so
+% detailed balance and the equilibrium densities do not depend on them.
+%
 % Optional name-value arguments (defaults in brackets):
+%   'delta_alpha' - Polarizability volume change LE -> CT, Delta_alpha,
+%                   Angstrom^3 [8.5e5]; 0 switches the quadratic Stark
+%                   shift off. The default keeps the quadratic shift of
+%                   the earlier model, which took the polarizability of
+%                   TCNQ (85 A^3 for a 1.5 A dipole length) scaled by
+%                   (RCT/1.5 A)^4, here at RCT = 1.5 nm.
 %   'thickness' - Active layer thickness, nm [100]
 %   'NC'        - Effective density of states, cm^-3 [2e19]
 %   'mobility'  - Electron and hole mobility, cm^2/(V s) [5e-2]
@@ -29,7 +44,10 @@ function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, R
 % Example:
 %   [DP, Prec] = build_MarcusTransfer_device(0.05, 10, 0.5, 1.5, 1.8);
 
+validateattributes(RCT, {'numeric'}, {'scalar', 'real', 'nonnegative'}, mfilename, 'RCT', 4);
+
 ip = inputParser;
+ip.addParameter('delta_alpha', 8.5e5, @(x) isscalar(x) && isreal(x) && x >= 0);
 ip.addParameter('thickness', 100, @(x) isscalar(x) && x > 0);
 ip.addParameter('NC', 2e19, @(x) isscalar(x) && x > 0);
 ip.addParameter('mobility', 5e-2, @(x) isscalar(x) && x > 0);
@@ -67,7 +85,8 @@ Prec                        = paramsRec.calcall(Prec);
 
 % Field-dependent rate constants, using the same temperature and RCTE as
 % the device so that forward and back transfer obey detailed balance
-[E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, Prec.const.T, Prec.params.RCTE);
+[E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, ...
+    Prec.const.T, Prec.params.RCTE, opt.delta_alpha);
 
 % Device parameters
 activelayer = 2;
