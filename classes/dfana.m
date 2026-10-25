@@ -40,7 +40,9 @@ classdef dfana
             dev.xpoints=xpoints;
             for ii=1:1:par.layers_num
                 if(par.Experiment_prop.symm==1)
-                    BM=ones(length(t), xpoints)*diag(par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR)+ones(length(t), xpoints)*diag(xmax-par.Layers{ii}.XL>=x & x > xmax-par.Layers{ii}.XR);
+                    % mirrored half: reflect x as pndriftHCT does
+                    xr=xmax-x;
+                    BM=ones(length(t), xpoints)*diag((par.Layers{ii}.XL<x | ii==1) & par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR)+ones(length(t), xpoints)*diag(x>xmax/2 & (par.Layers{ii}.XL<xr | ii==1) & par.Layers{ii}.XL<=xr & xr <= par.Layers{ii}.XR);
                 else
                     BM=ones(length(t), xpoints)*diag((par.Layers{ii}.XL<x | ii==1) & par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR);
                 end
@@ -64,6 +66,7 @@ classdef dfana
         function dev = develop_half(sol)
             par=sol.params;
             xmesh=sol.x;
+            xmax=max(xmesh);
             for i = 1:length(xmesh)-1
                 x(i) = xmesh(i)+((xmesh(i+1)-xmesh(i))/2);
             end
@@ -72,7 +75,9 @@ classdef dfana
             dev.xpoints=xpoints;
             for ii=1:1:par.layers_num
                 if(par.Experiment_prop.symm==1)
-                    BM=ones(length(t), xpoints)*diag(par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR)+ones(length(t), xpoints)*diag(xmax-par.Layers{ii}.XL>=x & x > xmax-par.Layers{ii}.XR);
+                    % mirrored half: reflect x as pndriftHCT does
+                    xr=xmax-x;
+                    BM=ones(length(t), xpoints)*diag((par.Layers{ii}.XL<x | ii==1) & par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR)+ones(length(t), xpoints)*diag(x>xmax/2 & (par.Layers{ii}.XL<xr | ii==1) & par.Layers{ii}.XL<=xr & xr <= par.Layers{ii}.XR);
                 else
                     BM=ones(length(t), xpoints)*diag((par.Layers{ii}.XL<x | ii==1) & par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR);
                 end

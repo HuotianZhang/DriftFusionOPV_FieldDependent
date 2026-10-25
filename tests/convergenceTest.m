@@ -46,6 +46,26 @@ verifyEqual(testCase, DPe.Xgrid_properties(end), sum(cellfun(@(L) L.tp, DPe.Laye
 verifyTrue(testCase, all(diff(DPe.Xgrid_properties) > 0));
 end
 
+function testSharedBoundaryBelongsToLeftLayer(testCase)
+% In the exact mesh adjacent layers share the boundary point; dfana.develop
+% must give it the left layer's properties (as pndriftHCT does), also for
+% the mirrored device of runsolVoc/runsolTPV (symm = 1)
+[DP, ~] = build_MarcusTransfer_device(0.2, 10, 0.5, 1.5, 1.8, 'verbose', false, 'mesh', 'exact');
+x = DP.Xgrid_properties;
+i = find(abs(x - DP.Layers{1}.XR) < 1e-15);
+verifyNumElements(testCase, i, 1);
+sol = struct('params', DP, 'x', x, 't', 0);
+dev = dfana.develop(sol);
+verifyEqual(testCase, dev.muee(1, i), DP.Layers{1}.muee);
+verifyEqual(testCase, dev.muee(1, i+1), DP.Layers{2}.muee);
+xm = [x, 2*x(end) - fliplr(x(1:end-1))];
+sol = struct('params', DP, 'x', xm, 't', 0);
+sol.params.Experiment_prop.symm = 1;
+dev = dfana.develop(sol);
+verifyEqual(testCase, dev.muee(1, i), DP.Layers{1}.muee);
+verifyEqual(testCase, dev.muee(1, numel(xm) + 1 - i), DP.Layers{1}.muee);
+end
+
 function testMeshConvergence(testCase)
 % Refining the exact mesh 4x (2x at low mobility) moves Jsc by ~1e-5
 % relative, Voc by < 0.1 mV and FF by < 1e-4
