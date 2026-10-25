@@ -124,6 +124,15 @@ DP.Layers{2}.marcus = struct('E', E, 'k', k, 'k_bak', kb, 'weight', 1);
 
 Jsc differs by less than 10⁻⁴ (relative) at high mobility and by 0.2 % at μ = 10⁻⁴.
 
+The minority currents exist because the transport layers of the default stack have the same band edges as the active layer and are only doped, so nothing blocks electrons from the hole contact or holes from the electron contact. The two current methods therefore describe different devices: `'flux'` is the terminal current of the simulated (leaky) device, while `'calcJ'` treats the contacts as selective without solving for them. Selective contacts can be solved consistently with `DP.Experiment_prop.BC = 1` (majority carriers fixed, minority carriers blocked at each contact), for which `'calcJ'` and `'flux'` agree:
+
+| Device | BC 2, `'calcJ'` (default) | BC 2, `'flux'` | BC 1 (selective) |
+|---|---|---|---|
+| reference, μ = 5×10⁻² cm²/(V s) | Voc 1.1791 V, FF 0.653 | 1.1686 V, 0.652 | 1.1791 V, 0.653 |
+| μ = 10⁻⁴ cm²/(V s), exact mesh | Voc 1.1978 V, FF 0.556 | 1.1705 V, 0.546 | 1.1794 V, 0.560 |
+
+At high mobility the default reproduces the selective-contact result; at low mobility it overestimates Voc by about 18 mV.
+
 **Discretization and time integration.** With the exact mesh, refining the mesh 4× changes Jsc by 1.4×10⁻⁵ (relative), Voc by 0.08 mV and FF by 5×10⁻⁵; a 100× tighter solver tolerance and a 10× slower J-V sweep (1.4 V/s) each change Voc by at most 0.15 mV. At short circuit the flux current is uniform across the device to 6×10⁻⁶.
 
 ## Workflow

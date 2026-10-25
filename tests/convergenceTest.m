@@ -12,20 +12,24 @@ root = fileparts(fileparts(mfilename('fullpath')));
 testCase.applyFixture(CurrentFolderFixture(root));
 testCase.applyFixture(PathFixture(root, 'IncludingSubfolders', true));
 
-% name, mesh, refinement factor, RelTol, J-V sweep time (s), mobility (cm^2/(V s))
+% name, mesh, refinement factor, RelTol, J-V sweep time (s), mobility
+% (cm^2/(V s)), boundary condition (2: fixed densities, default;
+% 1: selective contacts)
 cases = {
-    'legacy',        'legacy', 1, 1e-3, 0.1, 5e-2
-    'exact',         'exact',  1, 1e-3, 0.1, 5e-2
-    'exact_mesh2',   'exact',  2, 1e-3, 0.1, 5e-2
-    'exact_mesh4',   'exact',  4, 1e-3, 0.1, 5e-2
-    'exact_tol',     'exact',  1, 1e-5, 0.1, 5e-2
-    'exact_slow',    'exact',  1, 1e-3, 1,   5e-2
-    'lowmu',         'exact',  1, 1e-3, 0.1, 1e-4
-    'lowmu_mesh2',   'exact',  2, 1e-3, 0.1, 1e-4
+    'legacy',        'legacy', 1, 1e-3, 0.1, 5e-2, 2
+    'exact',         'exact',  1, 1e-3, 0.1, 5e-2, 2
+    'exact_mesh2',   'exact',  2, 1e-3, 0.1, 5e-2, 2
+    'exact_mesh4',   'exact',  4, 1e-3, 0.1, 5e-2, 2
+    'exact_tol',     'exact',  1, 1e-5, 0.1, 5e-2, 2
+    'exact_slow',    'exact',  1, 1e-3, 1,   5e-2, 2
+    'lowmu',         'exact',  1, 1e-3, 0.1, 1e-4, 2
+    'lowmu_mesh2',   'exact',  2, 1e-3, 0.1, 1e-4, 2
+    'bc1',           'legacy', 1, 1e-3, 0.1, 5e-2, 1
+    'bc1_lowmu',     'exact',  1, 1e-3, 0.1, 1e-4, 1
     };
 R = struct();
 for c = 1:size(cases, 1)
-    r = run_case(cases{c, 2:6});
+    r = run_case(cases{c, 2:7});
     R.(cases{c, 1}) = r;
     fprintf(['CONV %-12s npts=%4d Jsc=%.6f Voc=%.6f FF=%.6f | flux: Jsc=%.6f Voc=%.6f FF=%.6f | ' ...
         'Jsc_calcJ=%.6f Jsc_flux=%.6f spread=%.3g | Voc: J_calcJ=%.4g J_flux=%.4g Jn_left=%.4g Jp_right=%.4g\n'], ...
@@ -101,7 +105,7 @@ function testCalcJOmitsMinorityContactCurrents(testCase)
 % (fixed densities, BC = 2) let minority carriers leave there. The flux
 % current at the contact differs from calcJ by exactly these currents.
 R = testCase.TestData.R;
-for name = fieldnames(R)'
+for name = setdiff(fieldnames(R)', {'bc1', 'bc1_lowmu'})
     r = R.(name{1});
     verifyEqual(testCase, r.Jvoc_flux - r.Jvoc_calcJ, r.Jn_left_voc + r.Jp_right_voc, ...
         'RelTol', 2e-2, name{1});
@@ -110,15 +114,31 @@ end
 verifyEqual(testCase, R.exact.Jsc_calcJ, R.exact.Jsc_flux_right, 'RelTol', 1e-4);
 end
 
+function testSelectiveContacts(testCase)
+% With selective contacts (BC 1) no minority carriers leave through the
+% contacts, so calcJ and the flux current agree. At high mobility the
+% default (BC 2 with calcJ) reproduces the selective-contact result; at
+% mobility 1e-4 it overestimates Voc by ~18 mV.
+R = testCase.TestData.R;
+for name = {'bc1', 'bc1_lowmu'}
+    r = R.(name{1});
+    verifyLessThan(testCase, abs(r.Jn_left_voc) + abs(r.Jp_right_voc), 1e-3, name{1});
+    verify_close(testCase, r, r.flux, 1e-4, 0.5e-3, 5e-4, [name{1} ', calcJ vs flux']);
+end
+verify_close(testCase, R.legacy, R.bc1, 1e-4, 0.5e-3, 5e-4, 'BC 2 (calcJ) vs BC 1, mobility 5e-2');
+verifyGreaterThan(testCase, R.lowmu.Voc - R.bc1_lowmu.Voc, 0.01);
+end
+
 function verify_close(testCase, a, b, relJsc, absVoc, absFF, label)
 verifyEqual(testCase, b.Jsc, a.Jsc, 'RelTol', relJsc, ['Jsc, ' label]);
 verifyEqual(testCase, b.Voc, a.Voc, 'AbsTol', absVoc, ['Voc, ' label]);
 verifyEqual(testCase, b.FF, a.FF, 'AbsTol', absFF, ['FF, ' label]);
 end
 
-function r = run_case(mesh, refine, reltol, tsweep, mobility)
+function r = run_case(mesh, refine, reltol, tsweep, mobility, bc)
 [DP, Prec] = build_MarcusTransfer_device(0.2, 10, 0.5, 1.5, 1.8, 'verbose', false, ...
     'mesh', mesh, 'mobility', mobility);
+DP.Experiment_prop.BC = bc;
 if refine ~= 1
     for k = 1:DP.layers_num
         for f = {'pp', 'epointsL', 'epointsR', 'XipL', 'XipR'}

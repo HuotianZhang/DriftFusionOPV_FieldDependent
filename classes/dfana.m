@@ -278,7 +278,10 @@ classdef dfana
             
             %% Currents from the boundaries
             switch par.Experiment_prop.BC
-                case 2
+                case {1, 2}
+                    % No minority-carrier current at the contacts: exact
+                    % for BC 1 (blocking contacts), an approximation for
+                    % BC 2 (see calcJ_flux)
                     jn_l = 0*n(:, 1);%;-par.sn_l*(n(:, 1) - par.nleft);
                     jp_l = 0*n(:, 1);%;-deltajp(:, end) + par.sp_r*(p(:, end) - par.pright);
                     
