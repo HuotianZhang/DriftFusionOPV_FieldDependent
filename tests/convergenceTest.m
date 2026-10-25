@@ -91,10 +91,16 @@ verify_close(testCase, R.exact, R.exact_slow, 1e-4, 1e-3, 1e-3, '10x slower swee
 end
 
 function testCurrentContinuity(testCase)
-% At steady state the flux current is uniform across the device
+% At steady state the flux current is uniform across the device. Its
+% spread (central differences of the computed densities) is <= 2.3e-5 at
+% mobility 5e-2 and up to ~1e-3 at mobility 1e-4.
 R = testCase.TestData.R;
 for name = fieldnames(R)'
-    verifyLessThan(testCase, R.(name{1}).spread, 1e-3, name{1});
+    tol = 1e-4;
+    if contains(name{1}, 'lowmu')
+        tol = 3e-3;
+    end
+    verifyLessThan(testCase, R.(name{1}).spread, tol, name{1});
     verifyEqual(testCase, R.(name{1}).Jsc_flux_left, R.(name{1}).Jsc_flux_right, 'RelTol', 1e-3, name{1});
 end
 end
