@@ -51,10 +51,10 @@ To simulate your own device stack, copy `parameters/DeviceParameters_Default.xls
 ## Testing
 
 - `tests/smokeTest.m`: device parameters, transfer-matrix optical data and `external_model` load and run.
-- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the orientation-averaged Stark shift against numerical integration, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
+- `tests/physicsTest.m`: detailed balance between the Marcus forward/back rates and the device parameters, the orientation-averaged Stark shift against numerical integration, the optional vibronic/disorder (Marcus–Levich–Jortner) rates against their classical, vibronic-sum and disorder-integral limits, the Laguerre recurrence, `recombinationResults`, `generateDeviceparams` on the requested active layer, boundary condition `BC = 1`, and the series-resistance interpolation in `external_model`.
 - `tests/examplesTest.m`: runs every script in `examples/`.
 - `tests/convergenceTest.m`: mesh geometry, mesh refinement, solver tolerance, sweep rate and current continuity of the reference device, and the minority-carrier contact currents that the default current calculation omits (see `docs/solver.md`).
-- `tests/simulationTest.m`: J-V simulations of six Marcus devices (including each Stark term on its own) and the device of example 5, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime, field dependence and the quadratic Stark shift).
+- `tests/simulationTest.m`: J-V simulations of seven Marcus devices (including each Stark term on its own and the vibronic/disorder option) and the device of example 5, checked against recorded Jsc/Voc/FF and for physical consistency (radiative limits, ideal-diode FF limit, zero dark current at equilibrium, quasi-equilibrium Voc, trends with offset, exciton lifetime, field dependence and the quadratic Stark shift).
 
 Run them from MATLAB:
 

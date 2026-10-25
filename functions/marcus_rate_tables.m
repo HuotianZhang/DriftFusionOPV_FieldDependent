@@ -1,4 +1,4 @@
-function [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, T, RCTE, delta_alpha)
+function [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, T, RCTE, delta_alpha, varargin)
 % marcus_rate_tables - Field-dependent LE->CT and CT->LE rate tables for pndriftHCT
 %
 % The rates include the Stark shift of the CT state,
@@ -22,6 +22,17 @@ function [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, of
 %   delta_alpha - Polarizability volume change LE -> CT, Delta_alpha
 %                 (Angstrom^3). 0 switches the quadratic Stark shift off.
 %
+% Optional name-value arguments (vibronic and disorder option; with the
+% defaults the rates are the classical Marcus rates above):
+%   'huang_rhys'  - Huang-Rhys factor S of a high-frequency mode [0]
+%   'mode_energy' - Energy of that mode, eV [0.17]
+%   'disorder'    - Gaussian disorder sigma of the CT energy, eV [0]
+% With S > 0 or sigma > 0 the rates are Marcus-Levich-Jortner rates averaged
+% over the CT disorder (see marcus_mlj_stark_rates). offset is then the
+% free-energy offset to the thermalised CT population, and the back rate
+% follows from detailed balance, so k_bak/k at zero field is still
+% exp(-offset/kT)/RCTE.
+%
 % Outputs (column vectors):
 %   E_values     - Electric field (V/m)
 %   k_values     - LE->CT rate (s^-1)
@@ -32,11 +43,27 @@ function [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, of
 % Example:
 %   [E, k, k_bak] = marcus_rate_tables(0.5, 1.5, 0.05, 300, 0.1, 8.5e5);
 
-kLECT = kDis_stark(lambda, RCT, offset, T, delta_alpha);
-kCTLE = kBak_stark(lambda, RCT, offset, T, delta_alpha);
+ip = inputParser;
+ip.addParameter('huang_rhys', 0, @(x) isscalar(x) && isreal(x) && x >= 0);
+ip.addParameter('mode_energy', 0.17, @(x) isscalar(x) && isreal(x) && x > 0);
+ip.addParameter('disorder', 0, @(x) isscalar(x) && isreal(x) && x >= 0);
+ip.parse(varargin{:});
+opt = ip.Results;
 
-E_values = kLECT(:, 1);
-k_values = kLECT(:, 2);
-k_bak_values = kCTLE(:, 2) / RCTE;
+if opt.huang_rhys == 0 && opt.disorder == 0
+    kLECT = kDis_stark(lambda, RCT, offset, T, delta_alpha);
+    kCTLE = kBak_stark(lambda, RCT, offset, T, delta_alpha);
+    E_values = kLECT(:, 1);
+    k_values = kLECT(:, 2);
+    k_bak_values = kCTLE(:, 2) / RCTE;
+else
+    % Same coupling, scaling and field grid as marcus_stark_table
+    Hab = 0.01;
+    E_values = (0:1e5:5e7)';
+    [k_f, k_b] = marcus_mlj_stark_rates(Hab, lambda, offset, T, E_values, RCT*1e-9, ...
+        delta_alpha, opt.huang_rhys, opt.mode_energy, opt.disorder);
+    k_values = 0.1*k_f;
+    k_bak_values = 0.1*k_b / RCTE;
+end
 
 end

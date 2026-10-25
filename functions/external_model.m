@@ -22,9 +22,10 @@ function JJ = external_model(VV, offset, lifetime_ex, lambda, RCT, E_gap, R_s, v
 %                 Example: 1.8 eV
 %   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
 %                 Example: 0.001 kOhms·cm²
-%   Name-value  - Optional device parameters ('delta_alpha', 'thickness',
-%                 'NC', 'mobility', 'kdis', 'kfor', 'krec', 'RCTE', 'T',
-%                 'mesh') and the J-V current method ('current'), see
+%   Name-value  - Optional device parameters ('delta_alpha', 'huang_rhys',
+%                 'mode_energy', 'disorder', 'thickness', 'NC', 'mobility',
+%                 'kdis', 'kfor', 'krec', 'RCTE', 'T', 'mesh') and the J-V
+%                 current method ('current'), see
 %                 build_MarcusTransfer_device. Output is quiet unless
 %                 'verbose', true is given.
 %

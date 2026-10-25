@@ -94,6 +94,65 @@ verifyEqual(testCase, (k(3) - k(1))/(k(2) - k(1)), 4, 'RelTol', 1e-3);
 verifyGreaterThan(testCase, k(2), k(1));
 end
 
+function testMLJReducesToClassicalMarcus(testCase)
+% With S = 0 and sigma = 0 the vibronic/disorder rates are the classical
+% orientation-averaged Marcus rates, in both directions
+F = [0 1e5 1e7 5e7];
+for offset = [0.05 0.3]
+    for stark = [1.5 0; 0 8.5e5; 1.5 8.5e5; 3 1e4]'
+        [kf, kb] = marcus_mlj_stark_rates(0.01, 0.5, offset, 300, F, stark(1)*1e-9, stark(2), 0, 0.17, 0);
+        verifyEqual(testCase, kf, marcus_equation_stark(0.01, 0.5, -offset, 300, F(:), stark(1)*1e-9, stark(2), 1), 'RelTol', 1e-9);
+        verifyEqual(testCase, kb, marcus_equation_stark(0.01, 0.5, offset, 300, F(:), stark(1)*1e-9, stark(2), -1), 'RelTol', 1e-9);
+    end
+end
+end
+
+function testMLJZeroFieldDetailedBalance(testCase)
+% The vibronic/disorder tables keep k_bak/k = exp(-offset/kT)/RCTE at zero field
+kB = physconst().kB_eV;
+for opts = {{'huang_rhys', 1}, {'disorder', 0.08}, {'huang_rhys', 1.5, 'mode_energy', 0.15, 'disorder', 0.05}}
+    for offset = [0.05 0.2]
+        [E, k, k_bak] = marcus_rate_tables(0.4, 1.5, offset, 300, 0.1, 8.5e5, opts{1}{:});
+        verifyEqual(testCase, E(1), 0);
+        verifyEqual(testCase, k_bak(1)/k(1), exp(-offset/(kB*300))/0.1, 'RelTol', 1e-9);
+    end
+end
+end
+
+function testMLJDisorderAverage(testCase)
+% At zero field the disorder-averaged rate is the classical rate averaged
+% over Gaussian CT energies whose mean lies sigma^2/(2kT) above the free energy
+kT = physconst().kB_eV*300;
+sigma = 0.08; offset = 0.1; lambda = 0.4;
+kf = marcus_mlj_stark_rates(0.01, lambda, offset, 300, 0, 0, 0, 0, 0.17, sigma);
+g = @(d) exp(-d.^2/(2*sigma^2))/(sqrt(2*pi)*sigma);
+ref = integral(@(d) marcus_plain(0.01, lambda, -offset + sigma^2/(2*kT) + d, 300).*g(d), ...
+    -1, 1, 'RelTol', 1e-12, 'AbsTol', 0);
+verifyEqual(testCase, kf, ref, 'RelTol', 1e-9);
+end
+
+function testMLJVibronicSum(testCase)
+% At zero field without disorder the rate is the Franck-Condon weighted sum
+% of classical Marcus rates over quanta of the high-frequency mode
+S = 1.2; hw = 0.17; offset = 0.3; lambda = 0.2;
+kf = marcus_mlj_stark_rates(0.01, lambda, offset, 300, 0, 0, 0, S, hw, 0);
+ref = 0;
+for n = 0:40
+    ref = ref + exp(-S)*S^n/factorial(n)*marcus_plain(0.01, lambda, -offset + n*hw, 300);
+end
+verifyEqual(testCase, kf, ref, 'RelTol', 1e-10);
+end
+
+function testMLJDeviceConsistency(testCase)
+% The device uses the vibronic/disorder zero-field rates consistently with
+% the detailed balance of deviceparams
+[DP, ~] = build_MarcusTransfer_device(0.1, 10, 0.5, 1.5, 1.8, 'verbose', false, ...
+    'huang_rhys', 1, 'disorder', 0.05);
+L = DP.Layers{2};
+verifyEqual(testCase, L.kdisexc, L.marcus.k(1));
+verifyEqual(testCase, L.kforEx/L.kdisexc, L.marcus.k_bak(1)/L.marcus.k(1), 'RelTol', 1e-3);
+end
+
 function testRecombinationResultsMatchesPrec(testCase)
 % With the rates from Prec, recombinationResults reproduces Prec's
 % non-radiative voltage loss
