@@ -109,6 +109,32 @@ DP.Layers{2}.marcus = struct('E', E, 'k', k, 'k_bak', kb, 'weight', 1);
 | 3 | finite surface recombination velocities and series resistance (`External_prop`) |
 | 4 | open circuit for the symmetric device used by `runsolVoc` (both contacts take layer 1's densities because the device is mirrored) |
 
+## Numerical accuracy and options
+
+`tests/convergenceTest.m` checks the reference device (offset 0.2 eV, 10 ps, λ = 0.5 eV, RCT = 1.5 nm, E_gap = 1.8 eV). The defaults reproduce the published results; two options change the numerics.
+
+**Mesh (`DP.solveropt.mesh`, or `'mesh'` in `build_MarcusTransfer_device`).** The default `'legacy'` mesh builds each layer region with ranges `a:h:b` that stop short of the region end when its length is not a multiple of `h`, and it skips the graded left interface of layers 2 and up. The default 50/100/50 nm stack is meshed as 48/95.9/46.9 nm, while the generation rate is normalised to 100 nm. `'exact'` meshes every layer to its full thickness, which raises Jsc of the reference device by 2.1 % and FF from 0.653 to 0.665.
+
+**Current (`'current'` in `run_MarcusTransfer_JV`/`external_model`, fifth argument of `dfplot.JV_new`).** The default `'calcJ'` integrates the continuity equations from the contacts assuming that no minority carriers leave through them: no electron current at the hole contact and no hole current at the electron contact. The default boundary conditions (fixed densities, BC = 2) do let minority carriers leave there. `'flux'` takes the current from the drift-diffusion fluxes at the contact (`dfana.calcJ_flux`), which includes them. Near open circuit these minority currents are about 1 mA/cm² at each contact:
+
+| Device | Voc, `'calcJ'` | Voc, `'flux'` | FF, `'calcJ'` → `'flux'` |
+|---|---|---|---|
+| reference (μ = 5×10⁻² cm²/(V s)) | 1.1791 V | 1.1686 V | 0.6526 → 0.6524 |
+| μ = 10⁻⁴ cm²/(V s), exact mesh | 1.1978 V | 1.1705 V | 0.556 → 0.546 |
+
+Jsc differs by less than 10⁻⁴ (relative) at high mobility and by 0.2 % at μ = 10⁻⁴.
+
+The minority currents exist because the transport layers of the default stack have the same band edges as the active layer and are only doped, so nothing blocks electrons from the hole contact or holes from the electron contact. The two current methods therefore describe different devices: `'flux'` is the terminal current of the simulated (leaky) device, while `'calcJ'` treats the contacts as selective without solving for them. Selective contacts can be solved consistently with `DP.Experiment_prop.BC = 1` (majority carriers fixed, minority carriers blocked at each contact), for which `'calcJ'` and `'flux'` agree:
+
+| Device | BC 2, `'calcJ'` (default) | BC 2, `'flux'` | BC 1 (selective) |
+|---|---|---|---|
+| reference, μ = 5×10⁻² cm²/(V s) | Voc 1.1791 V, FF 0.653 | 1.1686 V, 0.652 | 1.1791 V, 0.653 |
+| μ = 10⁻⁴ cm²/(V s), exact mesh | Voc 1.1978 V, FF 0.556 | 1.1705 V, 0.546 | 1.1794 V, 0.560 |
+
+At high mobility the default reproduces the selective-contact result; at low mobility it overestimates Voc by about 18 mV.
+
+**Discretization and time integration.** With the exact mesh, refining the mesh 4× changes Jsc by 1.4×10⁻⁵ (relative), Voc by 0.08 mV and FF by 5×10⁻⁵; a 100× tighter solver tolerance and a 10× slower J-V sweep (1.4 V/s) each change Voc by at most 0.15 mV. At short circuit the flux current is uniform across the device to 6×10⁻⁶.
+
 ## Workflow
 
 ```matlab

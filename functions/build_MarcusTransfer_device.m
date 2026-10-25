@@ -36,6 +36,10 @@ function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, R
 %   'RCTE'      - Ratio of CT to LE density of states [0.1]
 %   'T'         - Temperature, K [300]
 %   'verbose'   - Print progress and solver statistics [true]
+%   'mesh'      - Spatial mesh, 'legacy' or 'exact' ['legacy']. 'legacy'
+%                 reproduces the published results but its layers are
+%                 thinner than specified (95.9 nm active layer for 100 nm);
+%                 'exact' meshes every layer to its full thickness.
 %
 % Outputs:
 %   DP   - deviceparams object, ready for device
@@ -57,6 +61,7 @@ ip.addParameter('krec', 1e9, @(x) isscalar(x) && x > 0);
 ip.addParameter('RCTE', 1e-1, @(x) isscalar(x) && x > 0);
 ip.addParameter('T', 300, @(x) isscalar(x) && x > 0);
 ip.addParameter('verbose', true, @(x) islogical(x) || isnumeric(x));
+ip.addParameter('mesh', 'legacy', @(x) any(strcmp(x, {'legacy', 'exact'})));
 ip.parse(varargin{:});
 opt = ip.Results;
 
@@ -98,6 +103,7 @@ mobility    = opt.mobility;
 
 DP = deviceparams(repo_path('parameters', 'DeviceParameters_Default.xlsx'));
 DP.solveropt.verbose        = logical(opt.verbose);
+DP.solveropt.mesh           = opt.mesh;
 
 DP.light_properties.OM      = 0;
 DP.Time_properties.tpoints  = 100;

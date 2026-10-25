@@ -25,7 +25,9 @@ function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, 
 %                 Example: 0.001 kOhms·cm²
 %   Name-value  - Optional device parameters passed to build_MarcusTransfer_device
 %                 ('delta_alpha', 'thickness', 'NC', 'mobility', 'kdis',
-%                 'kfor', 'krec', 'RCTE', 'T', 'verbose')
+%                 'kfor', 'krec', 'RCTE', 'T', 'verbose', 'mesh'), and
+%                 'current': 'calcJ' (default, as published) or 'flux'
+%                 (see dfplot.JV_new)
 %
 % Outputs:
 %   JJ - Current density array (mA/cm²)
@@ -48,6 +50,14 @@ else
     Vend = max(VV);
 end
 
+% 'current' selects how the J-V curve is computed; the rest describe the device
+current = 'calcJ';
+k = find(strcmpi(varargin(1:2:end), 'current'), 1, 'last');
+if ~isempty(k)
+    current = varargin{2*k};
+    varargin(2*k-1:2*k) = [];
+end
+
 % Build the device (recombination parameters, Marcus rate tables, layers)
 [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, RCT, E_gap, varargin{:});
 
@@ -60,7 +70,7 @@ DV2 = device.runsolJsc(DV2, Gen);
 DV2 = device.runsolJV(DV2, Gen, Vstart, Vend);
 
 % Extract JV data without plotting
-[~, ~, ~, JJ, VV] = dfplot.JV_new(DV2.sol_JV, 0);
+[~, ~, ~, JJ, VV] = dfplot.JV_new(DV2.sol_JV, 0, 0, '', current);
 
 % Apply series resistance correction to the J-V characteristics
 % This accounts for voltage drop across series resistance in the device

@@ -39,6 +39,11 @@ classdef deviceparams
                 solveropt.AbsTol=1e-6;
                 solveropt.RelTol=1e-3;
                 solveropt.verbose=true;              % progress messages and pdepe statistics
+                % Spatial mesh: 'legacy' reproduces the published results; its
+                % ranges stop short of the layer ends, so layers come out thinner
+                % than tp (48/95.9/46.9 nm for the default 50/100/50 nm stack).
+                % 'exact' meshes every layer to its full thickness (see Xgrid).
+                solveropt.mesh='legacy';
                 % Define geometry of the system (m=0 1D, m=1 cylindrical polar coordinates,
                 % m=2 spherical polar coordinates).
                 solveropt.m = 0;
@@ -112,6 +117,10 @@ classdef deviceparams
                 DP=update_boundary_charge_densities(DP);
         end
         function DP = Xgrid(DP)
+            if isfield(DP.solveropt,'mesh') && strcmp(DP.solveropt.mesh,'exact')
+                DP = Xgrid_exact(DP);
+                return
+            end
             x=0;
             for ii=1:1:DP.layers_num
                 if(ii==1)
@@ -158,6 +167,39 @@ classdef deviceparams
                         DP.Layers{ii}.XR=max(x);
                     end
                 end
+            end
+            DP.Xgrid_properties=x;
+        end
+        function DP = Xgrid_exact(DP)
+            % Mesh in which every layer has exactly its thickness tp. Each
+            % layer is split into the same regions as in the legacy mesh
+            % (graded interface XiL, interface region tinterL, bulk,
+            % tinterR, XiR); each region of length L gets round(L/h) equal
+            % steps, so its last point lands on the region end. Adjacent
+            % layers share the boundary point (XR of one layer = XL of the
+            % next).
+            x=0;
+            for ii=1:1:DP.layers_num
+                L=DP.Layers{ii};
+                bulk=L.tp-L.XiL-L.tinterL-L.tinterR-L.XiR;
+                if bulk<0
+                    error('deviceparams:Xgrid', ['Layer %d: the interface regions (%g nm) are ' ...
+                        'thicker than the layer (%g nm)'], ii, (L.tp-bulk)*1e7, L.tp*1e7);
+                end
+                DP.Layers{ii}.XL=x(end);
+                regions=[L.XiL L.XipL; L.tinterL L.epointsL; bulk L.pp; L.tinterR L.epointsR; L.XiR L.XipR];
+                for r=1:size(regions,1)
+                    len=regions(r,1);
+                    if len<=0
+                        continue
+                    end
+                    nstep=1;
+                    if regions(r,2)>0
+                        nstep=max(1,round(len/regions(r,2)));
+                    end
+                    x=[x, x(end)+(1:nstep)*len/nstep]; %#ok<AGROW>
+                end
+                DP.Layers{ii}.XR=x(end);
             end
             DP.Xgrid_properties=x;
         end
