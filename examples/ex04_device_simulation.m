@@ -36,7 +36,7 @@ sol = DV.sol_Jsc;
 [~, ~, x, ~, n, p, CT, Ex] = dfana.splitsol(sol);
 FV = dfana.calcF(sol);                  % field (V/cm)
 xnm = x*1e7;
-edges = cumsum(cellfun(@(Lk) Lk.tp, DP.Layers))*1e7;   % layer boundaries (nm)
+edges = cellfun(@(Lk) Lk.XR, DV.DP.Layers)*1e7;   % layer boundaries in the mesh (nm)
 
 figure('Name', 'Example 4: profiles at short circuit');
 subplot(2, 1, 1)

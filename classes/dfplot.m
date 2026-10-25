@@ -166,6 +166,14 @@ classdef dfplot
             %the drift diffusion solution of runsolJV
             %Varargin{1} should be the Rshunt
             %Varargin{2} should be the name you want for the figure
+            %Varargin{3} is the current: 'calcJ' (default, as published;
+            %assumes no minority-carrier current at the contacts) or
+            %'flux' (the drift-diffusion fluxes at the contact, including
+            %minority carriers leaving through the opposite contact)
+            method='calcJ';
+            if numel(varargin)>=3 && ~isempty(varargin{3})
+                method=validatestring(varargin{3},{'calcJ','flux'});
+            end
             if isempty(varargin)
                 Rshunt=1e15;
                 plot_name='undefined';
@@ -180,8 +188,13 @@ classdef dfplot
                     plot_name=varargin{2};
                 end
             end
-            J = dfana.calcJ(sol);
+            if strcmp(method,'flux')
+                J = dfana.calcJ_flux(sol);
+            else
+                J = dfana.calcJ(sol);
+            end
             Vapp= dfana.calcVapp(sol);
+            Vapp = Vapp(:);
             % Current at the contact plus the shunt current, used for the
             % plot, Jsc, Voc, FF and the returned curve alike
             Jtot = J.tot(:,end) + Vapp/Rshunt;

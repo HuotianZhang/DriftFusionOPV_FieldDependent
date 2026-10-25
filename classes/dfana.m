@@ -29,6 +29,9 @@ classdef dfana
             
         end
         function dev = develop(sol)
+            % Layer properties at each mesh point. A point on a layer
+            % boundary (shared by two layers in the 'exact' mesh) belongs to
+            % the left layer, as in pndriftHCT.
             par=sol.params;
             x=sol.x;
             xmax=max(x);
@@ -39,7 +42,7 @@ classdef dfana
                 if(par.Experiment_prop.symm==1)
                     BM=ones(length(t), xpoints)*diag(par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR)+ones(length(t), xpoints)*diag(xmax-par.Layers{ii}.XL>=x & x > xmax-par.Layers{ii}.XR);
                 else
-                    BM=ones(length(t), xpoints)*diag(par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR);
+                    BM=ones(length(t), xpoints)*diag((par.Layers{ii}.XL<x | ii==1) & par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR);
                 end
                 
                 for name=fieldnames(par.Layers{ii})'
@@ -71,7 +74,7 @@ classdef dfana
                 if(par.Experiment_prop.symm==1)
                     BM=ones(length(t), xpoints)*diag(par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR)+ones(length(t), xpoints)*diag(xmax-par.Layers{ii}.XL>=x & x > xmax-par.Layers{ii}.XR);
                 else
-                    BM=ones(length(t), xpoints)*diag(par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR);
+                    BM=ones(length(t), xpoints)*diag((par.Layers{ii}.XL<x | ii==1) & par.Layers{ii}.XL<=x & x <= par.Layers{ii}.XR);
                 end
                 
                 for name=fieldnames(par.Layers{ii})'
@@ -326,6 +329,36 @@ classdef dfana
             J.tot = J.n + J.p + J.disp;
         end
         
+        function [J, x] = calcJ_flux(sol)
+            % Current density (A/cm^2) on the half grid from the
+            % drift-diffusion fluxes that pndriftHCT integrates, plus the
+            % displacement current. At steady state J is the same at every
+            % x, so its spread measures the discretization error. Unlike
+            % calcJ, it includes minority-carrier currents at the contacts.
+            % The heterojunction grading terms (zero for equal band edges
+            % and densities of states) are not included.
+            [~,t,xmesh,par,n,p,~,~,V] = dfana.splitsol(sol);
+            x = getvarihalf(xmesh);
+            dx = diff(xmesh);
+            dev = dfana.develop_half(sol);
+            kT = par.physical_const.kB*par.physical_const.T;
+            e = par.physical_const.e;
+            nh = (n(:,1:end-1) + n(:,2:end))/2;
+            ph = (p(:,1:end-1) + p(:,2:end))/2;
+            dVdx = diff(V,1,2)./dx;
+            % pdepe flux f = mu*(n*(-dV/dx) + kT*dn/dx) for electrons and
+            % mu*(p*dV/dx + kT*dp/dx) for holes; J_n = e*f_n, J_p = -e*f_p
+            J.n = e*dev.mue.*(-nh.*dVdx + kT*diff(n,1,2)./dx);
+            J.p = -e*dev.mup.*(ph.*dVdx + kT*diff(p,1,2)./dx);
+            J.disp = zeros(size(J.n));
+            if numel(t) > 1
+                for i = 1:numel(x)
+                    J.disp(:,i) = e*dev.epp(:,i).*gradient(-dVdx(:,i), t(:));
+                end
+            end
+            J.tot = J.n + J.p + J.disp;
+        end
+
         function [g1, g2, g] = calcg(sol)
             par = sol.par;
             tmesh = sol.t;
