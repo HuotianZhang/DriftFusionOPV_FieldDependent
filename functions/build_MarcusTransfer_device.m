@@ -27,6 +27,11 @@ function [DP, Prec] = build_MarcusTransfer_device(offset, lifetime_ex, lambda, R
 %                   the earlier model, which took the polarizability of
 %                   TCNQ (85 A^3 for a 1.5 A dipole length) scaled by
 %                   (RCT/1.5 A)^4, here at RCT = 1.5 nm.
+%   'huang_rhys', 'mode_energy', 'disorder' - Vibronic and disorder option
+%                   for the LE<->CT rates: Huang-Rhys factor S [0] and
+%                   energy (eV) [0.17] of a high-frequency mode, Gaussian
+%                   disorder of the CT energy (eV) [0]. The defaults give
+%                   the classical Marcus rates; see marcus_rate_tables.
 %   'thickness' - Active layer thickness, nm [100]
 %   'NC'        - Effective density of states, cm^-3 [2e19]
 %   'mobility'  - Electron and hole mobility, cm^2/(V s) [5e-2]
@@ -52,6 +57,9 @@ validateattributes(RCT, {'numeric'}, {'scalar', 'real', 'nonnegative'}, mfilenam
 
 ip = inputParser;
 ip.addParameter('delta_alpha', 8.5e5, @(x) isscalar(x) && isreal(x) && x >= 0);
+ip.addParameter('huang_rhys', 0, @(x) isscalar(x) && isreal(x) && x >= 0);
+ip.addParameter('mode_energy', 0.17, @(x) isscalar(x) && isreal(x) && x > 0);
+ip.addParameter('disorder', 0, @(x) isscalar(x) && isreal(x) && x >= 0);
 ip.addParameter('thickness', 100, @(x) isscalar(x) && x > 0);
 ip.addParameter('NC', 2e19, @(x) isscalar(x) && x > 0);
 ip.addParameter('mobility', 5e-2, @(x) isscalar(x) && x > 0);
@@ -91,7 +99,8 @@ Prec                        = paramsRec.calcall(Prec);
 % Field-dependent rate constants, using the same temperature and RCTE as
 % the device so that forward and back transfer obey detailed balance
 [E_values, k_values, k_bak_values] = marcus_rate_tables(lambda, RCT, offset, ...
-    Prec.const.T, Prec.params.RCTE, opt.delta_alpha);
+    Prec.const.T, Prec.params.RCTE, opt.delta_alpha, 'huang_rhys', opt.huang_rhys, ...
+    'mode_energy', opt.mode_energy, 'disorder', opt.disorder);
 
 % Device parameters
 activelayer = 2;

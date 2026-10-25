@@ -90,6 +90,25 @@ relative to the LE state, which is taken as unshifted. The two terms are the lin
 - The default Δα keeps the quadratic shift of the earlier model, which took the polarizability of TCNQ (85 Å³ for a 1.5 Å dipole length) scaled by (RCT / 1.5 Å)⁴, at RCT = 1.5 nm. With RCT = 0 the model reduces to that earlier one for a 1.5 nm CT state. Set Δα from electroabsorption data where available.
 - Setting both `RCT = 0` and `'delta_alpha', 0` gives field-independent LE↔CT rates, equivalent to `marcus.weight = 0`.
 
+### Vibronic and disorder option
+
+By default the LE↔CT rates are classical Marcus rates for a single CT energy. Three optional parameters of `build_MarcusTransfer_device` (and `marcus_rate_tables`) replace them with Marcus–Levich–Jortner rates averaged over Gaussian disorder of the CT energy (`marcus_mlj_stark_rates`):
+
+| Option | Quantity | Units | Default |
+|---|---|---|---|
+| `'huang_rhys'` | Huang–Rhys factor S of a high-frequency mode | — | 0 |
+| `'mode_energy'` | energy ħω of that mode (ħω ≫ kT) | eV | 0.17 |
+| `'disorder'` | Gaussian disorder σ of the CT energy | eV | 0 |
+
+```
+k_f = (2π/ħ)|Hab|² (πc)^(−1/2) Σ_n e^(−S) Sⁿ/n! · exp(−(λ + nħω + ΔG + σ²/2kT)² / c),   c = 4λkT + 2σ²
+k_b = k_f · exp(ΔG/kT)
+```
+
+with ΔG = −offset − e·RCT·F cos θ − ½ΔαF², averaged over orientations as above, and λ the low-frequency (outer) reorganization energy. `offset` is here the free-energy offset between the LE state and the thermalised CT population; the mean CT energy lies σ²/(2kT) above it. The back rate follows from detailed balance at each orientation, so at zero field k_bak/k = exp(−offset/kT)/RCTE for any S, ħω and σ, and the equilibrium densities of `deviceparams` stay valid. With S = 0 and σ = 0 the rates are exactly the classical ones. These parameters describe the LE→CT transfer only; the CT parameters in `paramsRec` (`CT.sigma`, `CT.L0`, `CT.Li`), which set the CT spectra, are separate.
+
+For λ = 0.5 eV and offset 0.05 eV, disorder slightly strengthens the field dependence of the LE→CT rate (k(10⁷ V/m)/k(0) = 1.66 for σ = 0, 1.70 for σ = 0.1 eV); a high-frequency mode can weaken or reverse it, depending on λ and the offset.
+
 To change the Stark parameters of an existing device, rebuild the tables:
 
 ```matlab

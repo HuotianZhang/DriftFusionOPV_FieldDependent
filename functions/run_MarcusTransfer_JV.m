@@ -24,7 +24,8 @@ function [JJ, VV] = run_MarcusTransfer_JV(VV, offset, lifetime_ex, lambda, RCT, 
 %   R_s         - Series resistance per area (kOhms·cm²) V_R_series = V + J * R_s
 %                 Example: 0.001 kOhms·cm²
 %   Name-value  - Optional device parameters passed to build_MarcusTransfer_device
-%                 ('delta_alpha', 'thickness', 'NC', 'mobility', 'kdis',
+%                 ('delta_alpha', 'huang_rhys', 'mode_energy',
+%                 'disorder', 'thickness', 'NC', 'mobility', 'kdis',
 %                 'kfor', 'krec', 'RCTE', 'T', 'verbose', 'mesh'), and
 %                 'current': 'calcJ' (default, as published) or 'flux'
 %                 (see dfplot.JV_new)
